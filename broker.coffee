@@ -3,6 +3,7 @@ argv = require('optimist').argv
 {loads, heartbeat} = require('./heartbeat')
 logger = require('./log')
 
+# If parent says so, exit
 process.stdin.resume()
 process.stdin.on 'end', ->
   process.exit 0
@@ -10,13 +11,12 @@ process.stdin.on 'end', ->
 logger.verbose = argv.v
 host = argv.host || 'localhost'
 pname = argv.pname
+logger.prefix = "#{pname}: "
 
 errorHandler = (err) -> logger.log err
 
-connection = amqp.createConnection( { host: host } )
 logger.log "#{pname} starting on #{host}"
-
-# Listen for all messages sent on 'edm' topic
+connection = amqp.createConnection( { host: host } )
 connection.on 'ready', ->
   logger.log 'connection ok'
 
@@ -24,21 +24,19 @@ connection.on 'ready', ->
     ->  logger.log "exchange 'workX' ok"
   exposureX = connection.exchange 'exposures', options = { type: 'topic', autodelete: false },
     ->  logger.log "exchange 'exposures' ok"
+
+  # Send ready status and current load to broker.ready topic at regular intervals
   heartbeat connection, 'broker.ready', pname
 
+  # listen on 'edm.ready' topic, funnel request to 'compile' work-queue.
   connection.queue '', {exclusive: true}, (edmQ) ->
-    logger.log "temp edmQ opened"
     edmQ.on 'error', errorHandler
     edmQ.on 'queueBindOk', ->
       logger.log "exposures->edm bind ok"
-      logger.log "about to subscribe"
       edmQ.subscribe (message, headers, deliveryInfo) ->
-        logger.log "rec'd from exposures.edm: #{message.data},  deliveryInfo: #{deliveryInfo}"
-        logger.log "sending to compile q"
+        logger.log "#{deliveryInfo.routingKey} > #{message.data}"
         workX.publish 'compile', message.data
-      edmQ.on 'basicQosOk',
-        -> logger.log "subscribe to edm topic ok"
-    logger.log "about to bind"
+        logger.log "compileQ < #{message.data}"
     edmQ.bind(exposureX, "edm.ready" )
 
 
