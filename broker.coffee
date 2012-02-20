@@ -1,6 +1,6 @@
 amqp = require('amqp')
 argv = require('optimist').argv
-{loads, heartbeat} = require('./heartbeat')
+heartbeat = require('./heartbeat').heartbeat
 logger = require('./log')
 
 # If parent says so, exit
