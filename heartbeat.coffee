@@ -14,7 +14,7 @@ root.heartbeat = ( conn, topic, pname, interval = 5000 ) ->
     exchange.publish topic, "name: #{pname}, load: #{currentLoad}"
   timerFn = ->
     setInterval ( ->
-      pulse
+      pulse()
       ) , interval
   exchange = conn.exchange 'servers', options = { type: 'topic', autodelete: false }, timerFn
 
