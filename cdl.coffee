@@ -40,11 +40,10 @@ connection.on 'ready', =>
       # listen on compile queue, simulate work/load, publish result to cdl.ready
       compileQ.subscribe (message, headers, deliveryInfo) ->
         logger.log "compileQ > #{message.data}"
-        [name, ver, size, src] = unpack message.data
-        simulate name, ver, size, (name, ver, size) ->
-          entry = cdlCache[name] ?= {}
-          output = pack( name, ver, size, pname )
-          entry[ver] = output
+        [name, size, src] = unpack message.data
+        simulate name, size, (name, size) ->
+          output = pack( name, size, pname )
+          cdlCache[name] = output
           exposureX.publish 'cdl.ready', output
           logger.log "cdl.ready < #{output}"
     compileQ.bind(workX, "compile" )
@@ -56,12 +55,11 @@ connection.on 'ready', =>
       logger.log "exposures->cdl bind ok"
       cdlQ.subscribe (message, headers, deliveryInfo) ->
           logger.log "cdl.ready > #{message.data}"
-          [name, ver, size, src] = unpack message.data
-          portfolio = cdlCache[name] ? {}
-          if not portfolio[ver]
-            output = pack( name, ver, size, pname )
-            portfolio[ver] = output
-            cdlCache[name] = portfolio
+          [name, size, src] = unpack message.data
+          portfolio = cdlCache[name]
+          if not portfolio
+            output = pack( name, size, pname )
+            cdlCache[name] = output
             exposureX.publish 'cdl.ready', output
             logger.log "cdl.ready < #{output} (replicated from #{src})"
     cdlQ.bind(exposureX, "cdl.ready" )
@@ -73,14 +71,14 @@ work = (n) ->
  while i < n * 10000000
    i++
  i
-simulate = (name, ver, size, cb) ->
+simulate = (name, size, cb) ->
   timeout = 3000
-#  logger.log "#{name} #{ver} #{size}"
+  logger.log "#{name} #{size}"
   switch size
     when sizes.Small
       bumpLoad 3
       setTimeout ( ->
-        cb name, ver, size
+        cb name, size
         bumpLoad  -3
       ), timeout
       work 3
@@ -90,7 +88,7 @@ simulate = (name, ver, size, cb) ->
       setTimeout ( ->
         bumpLoad -5
         setTimeout ( ->
-          cb name, ver, size
+          cb name, size
           bumpLoad -5
         ), timeout
       ), timeout
@@ -103,9 +101,11 @@ simulate = (name, ver, size, cb) ->
         setTimeout ( ->
           bumpLoad -10
           setTimeout ( ->
-            cb name, ver, size
+            cb name, size
             bumpLoad -10
           ), timeout
         ), timeout
       ), timeout
       work 30
+
+    else logger.log "no such size!"

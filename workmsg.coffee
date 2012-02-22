@@ -9,8 +9,8 @@ root.sizes =
 # "name: aaa/nn, size: B, on: ccc"  -> [aaa, nn, B, ccc]
 root.unpack = (input) ->
   p1 =  input.toString().replace( /\s/g, '')
-  [label1, name, ver, label2, size, label3, at]  =  p1.split /\:|\/|,/g
-  [name, ver, size, at]
+  [label1, name, label2, size, label3, at]  =  p1.split /\:|,/g
+  [name, size, at]
 
-root.pack = (name, ver, size, at) ->
-  "name: #{name}/#{ver}, size: #{size}, at: #{at}"
+root.pack = (name, size, at) ->
+  "name: #{name}, size: #{size}, at: #{at}"
