@@ -33,7 +33,7 @@ connection.on 'ready', ->
            proc = spawn( 'cmd', ['/s', '/c', spawnCmd ] )
            proc.on 'exit', =>
              exchange = connection.exchange "servers", options = { type: 'topic'}, ->
-               exchange.publish (if server == 'cdl' then 'cdlserver.stopped' else 'broker.stopped'), processName
+               exchange.publish (if server == 'cdl' then 'cdlserver.stopped' else 'trigger.stopped'), processName
                logger.log "#{server} stopped"
            proc.stderr.setEncoding 'utf8'
            proc.stderr.on 'data', (data) -> logger.log data
