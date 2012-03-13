@@ -1,6 +1,7 @@
 root = exports ? this
 
 root.sizes =
+   Tiny   : "XS"
    Small :  "S"
    Medium : "M"
    Large :  "L"
