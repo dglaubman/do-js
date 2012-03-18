@@ -1,6 +1,6 @@
 # engine:  pop workQ, simulate workload, signal completion
 #
-# usage: start engine --name= --pid [--workQ=] [-v]
+# usage: start engine --name= --pid= [-v]
 # secondary options: [--xsignal=] [--xwork=] [--xserver=]
 #
 semver = "0.1.0"                  # Semantic versioning: see semver.org
@@ -22,14 +22,13 @@ process.stdin.on 'end', ->
 
 # Parse input arguments, set up log
 logger.verbose = argv.v
-name = argv.name                   or fatal( "No process name specified" )
+name = argv.name or fatal( "No process name specified" )
+signalQ = workQ = name
 pid = argv.pid                     or 0
 pname = "#{name}/#{pid}"
 logger.prefix = "#{pname}: "
 host = argv.host                   or 'localhost'
 
-signalQ = argv.signal              or name
-workQ = argv.workQ                 or name
 # Exchange names
 xwork = argv.xwork                 or 'workX'
 xsignal = argv.xsignal             or 'exposures'
@@ -37,10 +36,9 @@ xserver = argv.xserver             or 'servers'
 
 
 connection = amqp.createConnection( { host: host } )
-logger.log "#{pname} starting on #{host}"
 
 connection.on 'ready', =>
-  logger.log 'connection ok'
+  logger.log "connected to amqp on #{host}"
   signalX = connection.exchange xsignal, options = {
     type: 'topic'
     autodelete: false },

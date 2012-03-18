@@ -24,6 +24,7 @@ execQ = 'execQ' + suffix;
 workX = 'workX' + suffix;
 serverX = 'serverX' + suffix;
 signalX = 'signalX' + suffix;
+commonArgs = " -v --host #{host} --xsignal #{signalX} --xwork #{workX} --xserver #{serverX}"
 
 connection = amqp.createConnection( { host: host } )
 
@@ -42,17 +43,18 @@ connection.on 'ready', ->
 
     q.subscribe options={ack:true}, (message, headers, deliveryInfo) ->
       logger.log message.data
-      [verb,type,server,rakids,signals] =  message.data.toString().split /\s+/g
+      words =  message.data.toString().split /\s+/g
+
       q.shift()
-      switch verb
+      switch words[0]
         when 'start'
+          [type,server,rakids,signals] = words.splice 1
           processName = "#{server}/#{procNum}"
           switch type
             when 'engine'
-              spawnCmd = "coffee engine --name #{server}  --pid #{procNum} -v --host #{host} --xsignal #{signalX} --xwork #{workX} --xserver #{serverX}"
+              spawnCmd = "coffee engine --name #{server}  --pid #{procNum} #{commonArgs}"
             when 'trigger'
-              spawnCmd = "coffee trigger --name #{server}  --pid #{procNum} --rakids #{rakids} --signals #{signals}" +
-                         " --host #{host} --xsignal #{signalX} --xwork #{workX} --xserver #{serverX}"
+              spawnCmd = "coffee trigger --name #{server}  --pid #{procNum} --rakids #{rakids} --signals #{signals} #{commonArgs}"
           logger.log spawnCmd
           proc = spawn( 'cmd', ['/s', '/c', spawnCmd ] )
           proc.on 'exit', =>
@@ -66,7 +68,8 @@ connection.on 'ready', ->
           procNum++
 
         when 'stop'
-          procs[server].stdin.end()
+          name = words[1]
+          procs[name].stdin.end()
           logger.log "stopping #{server}"
 
 
