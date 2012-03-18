@@ -8,7 +8,7 @@ pulse = ->
 currentLoad = 0
 
 # Publish server ready and current load every interval millisecs
-root.heartbeat = ( conn, topic, pname, interval = 5000 ) ->
+root.heartbeat = ( conn, serverX, topic, pname, interval = 5000 ) ->
 
   pulse = ->
     exchange.publish topic, "name: #{pname}, load: #{currentLoad}"
@@ -17,7 +17,5 @@ root.heartbeat = ( conn, topic, pname, interval = 5000 ) ->
     setInterval ( ->
       pulse()
       ) , interval
-  exchange = conn.exchange 'servers', options = { type: 'topic', autodelete: false }, timerFn
-
-
+  exchange = conn.exchange serverX, options = { type: 'topic', autodelete: false }, timerFn
 
