@@ -34,41 +34,115 @@ xwork = argv.xwork                 or 'workX'
 xsignal = argv.xsignal             or 'exposures'
 xserver = argv.xserver             or 'servers'
 
-
-connection = amqp.createConnection( { host: host } )
+connection = amqp.createConnection( { host: host, vhost: "v#{semver}" } )
 
 connection.on 'ready', =>
-  logger.log "connected to amqp on #{host}"
+#  logger.log "connected to amqp on #{host}"
   signalX = connection.exchange xsignal, options = {
     type: 'topic'
     autodelete: false },
-    -> logger.log "exchange '#{xsignal}' ok"
+    ->  # logger.log "exchange '#{xsignal}' ok"
 
   workX = connection.exchange xwork, options = { type: 'direct'},
-    -> logger.log "exchange '#{xwork}' ok"
+    -> # logger.log "exchange '#{xwork}' ok"
 
   # Send status/load to server status topic at regular intervals
   heartbeat connection, xserver, 'engine.ready', pname
 
   connection.queue workQ, (q) ->   # use workQ, not '' since want to share work
-    logger.log "#{workQ} opened ok"
+    logger.log "started"
     q.on 'error', error
     q.on 'queueBindOk', ->
-      logger.log "'#{workQ}' bound ok"
+      # logger.log "'#{workQ}' bound ok"
       # listen on workQ queue, simulate work/load, signal result
       q.subscribe (message, headers, deliveryInfo) ->
-        signal deliverInfo.routingKey, message.data
+        signal message.data
     q.bind(workX, workQ)
 
   # signal completion
-  signal = (msg) ->
-    e = name.slice(-1) is 'e' ? 'e' : ''
+  signal = (rawmsg) ->
+    e = if name.slice(-1) is 'e' then '' else 'e'
     status = "#{name}#{e}d!"
-    newmsg =
+    msg = JSON.parse rawmsg
+    #logger.log "triggered by: #{rawmsg}"
+    newmsg = JSON.stringify {
       ver: semver
       id: msg.id
       rakIds: msg.rakIds.slice 0
       payload:
        src: msg.payloads[0].src
        status: status
-    setTimeout ( -> signalX.publish signalQ, newmsg), 3000
+    }
+    simulate name, Sizes.Medium, (-> signalX.publish signalQ, newmsg )
+    logger.log "Signaled: #{newmsg}"
+work = (n) ->
+ i = 0
+ while i < n * 10000000
+   i++
+ i
+Sizes = { Tiny: 1, Small: 2, Medium: 3, Large: 4, XLarge: 5 }
+simulate = (name, size, cb) ->
+  timeout = 1000
+  switch size
+    when Sizes.Tiny
+      bumpLoad 1
+      setTimeout ( ->
+        bumpLoad  -1
+        cb name, size
+      ), timeout
+      work 1
+
+    when Sizes.Small
+      bumpLoad 3
+      setTimeout ( ->
+        bumpLoad  -3
+        cb name, size
+      ), timeout
+      work 3
+
+    when Sizes.Medium
+      bumpLoad 10
+      setTimeout ( ->
+        bumpLoad -5
+        setTimeout ( ->
+          bumpLoad -5
+          cb name, size
+        ), timeout
+      ), timeout
+      work 10
+
+    when Sizes.Large
+      bumpLoad +30
+      setTimeout ( ->
+        bumpLoad -10
+        setTimeout ( ->
+          bumpLoad -10
+          setTimeout ( ->
+            bumpLoad -10
+            cb name, size
+          ), timeout
+        ), timeout
+      ), timeout
+      work 30
+
+    when Sizes.XLarge
+      bumpLoad +75
+      setTimeout ( ->
+        bumpLoad -15
+        setTimeout ( ->
+          bumpLoad -15
+          setTimeout ( ->
+            bumpLoad -15
+            setTimeout ( ->
+              bumpLoad -15
+              setTimeout ( ->
+                bumpLoad -15
+                cb name, size
+              ), timeout
+            ), timeout
+          ), timeout
+        ), timeout
+      ), timeout
+      work 30
+
+

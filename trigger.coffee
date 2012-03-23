@@ -32,47 +32,31 @@ signals = argv.signals?.split(',') or ["edm.ready"]  # pre v0.1.0 default
 rakId = argv.rakid                 or ""             # pre v0.1.0 default
 workQ = argv.workQ                 or "#{name}"      # by default use same name for trigger, engine, signal
 pname = "#{name}/#{pid}"
-logger.prefix = "#{pname}: "
+logger.prefix = "Trigger #{pname}: "
 
-connection = amqp.createConnection( { host: host } )
+filter = {  'signals': signals, id: rakId }
+
+connection = amqp.createConnection( { host: host, vhost: "v#{semver}" } )
 
 connection.on 'ready', ->
 
-  filter  = {  'signals': signals, id: rakId }
-  build =  (signal, data) ->
-    return null if data.ver isnt semver
-    return null if not filter.id in data.rakIds
-    if signal in filter.signals
-      entry = cache[ data.id ] or=
-        remaining: filter.signals
-        rakIds: data.rakIds
-        payloads: {}
-      entry.payloads[signal] = payload
-      _.without( entry.remaining, signal )
-      return null if not _.isEmpty( entry.remaining )
-      {
-        ver: semver
-        rakIds: _.union( entry.rakIds, data.rakIds )
-        id: data.id
-        payloads: entry.payloadsd
-      }
-
   workX = connection.exchange xwork, options = { type: 'direct'},
-    ->  logger.log "exchange '#{xwork}' ok"
+    ->  # logger.log "exchange '#{xwork}' ok"
   signalX = connection.exchange xsignal, options = { type: 'topic', autodelete: false },
-    ->  logger.log "exchange '#{xsignal}' ok"
+    ->  # logger.log "exchange '#{xsignal}' ok"
 
   # Send ready status to trigger.ready topic at regular intervals
   heartbeat connection, xserver, 'trigger.ready', pname
 
   # when correlated signals arrive, concatenate payloads and funnel request to work queue.
-  trigger = (signal, data) ->
-    switch data.ver ? 0
+  trigger = (signal, raw) ->
+    logger.log "#{signal} > #{raw}"
+    data = JSON.parse raw
+    switch data.ver or 0
       when 0                                       # pre v0.1.0 default
-        logger.log "#{signal} > #{data}"
         workX.publish workQ, data
       when semver
-        workX.publish( workQ, m ) if (m = msg.build( signal, data ))
+        workX.publish( workQ, m ) if (m = build( signal, data ))
       else
         error "expected version #{semver}, got #{data.ver}"
 
@@ -83,7 +67,26 @@ connection.on 'ready', ->
       workQ.subscribe (message, headers, deliveryInfo) ->
         trigger deliveryInfo.routingKey, message.data
     workQ.bind(signalX, signal) for signal in signals
-    logger.log "listening on #{signals}"
+    logger.log "listening on #{filter.signals} (rak #{filter.id})"
 
-
-
+  cache = {}
+  build =  (signal, data ) ->
+    return null if data.ver isnt semver
+    return null unless (filter.id in data.rakIds)
+    if signal in filter.signals
+      entry = cache[ data.id ] or= {
+        remaining: filter.signals
+        rakIds: data.rakIds
+        payloads: []
+        }
+      entry.payloads.push(data.payload)
+      entry.remaining = _.without( entry.remaining, signal )
+      return null if not _.isEmpty( entry.remaining )
+      m = JSON.stringify(
+        ver: semver
+        rakIds: _.union( entry.rakIds, data.rakIds )
+        id: data.id
+        payloads: entry.payloads.slice 0
+        )
+      logger.log "triggering: #{m}"
+      m
