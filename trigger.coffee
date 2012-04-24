@@ -4,7 +4,7 @@
 #   secondary options:  [--xwork=work exchange] [--xsignal=signals exchange] [--xserver= server exchange]
 #
 
-semver = "0.1.0"              # Semantic versioning: see semver.org
+semver = "0.1.1"              # Semantic versioning: see semver.org
 
 amqp = require('amqp')
 argv = require('optimist').argv
@@ -89,4 +89,5 @@ connection.on 'ready', ->
         payloads: entry.payloads.slice 0
         )
       logger.log "triggering: #{m}"
+      delete cache[data.id]
       m

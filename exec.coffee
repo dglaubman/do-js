@@ -2,7 +2,7 @@
 #
 # usage: coffee exec [-v] [--suffix=]
 
-semver = "0.1.0"                  # Semantic versioning: see semver.org
+semver = "0.1.1"                  # Semantic versioning: see semver.org
 
 amqp = require('amqp')
 spawn = require('child_process').spawn

@@ -3,7 +3,7 @@
 # usage: start engine --name= --pid= [-v]
 # secondary options: [--xsignal=] [--xwork=] [--xserver=]
 #
-semver = "0.1.0"                  # Semantic versioning: see semver.org
+semver = "0.1.1"                  # Semantic versioning: see semver.org
 
 amqp = require('amqp')
 argv = require('optimist').argv
@@ -33,7 +33,7 @@ host = argv.host                   or 'localhost'
 xwork = argv.xwork                 or 'workX'
 xsignal = argv.xsignal             or 'exposures'
 xserver = argv.xserver             or 'servers'
-
+debugger
 connection = amqp.createConnection( { host: host, vhost: "v#{semver}" } )
 
 connection.on 'ready', =>
