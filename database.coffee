@@ -1,24 +1,27 @@
 mongodb = require("mongodb")
 root = exports ? this
 
-DB_PORT = 27017
-host = 'localhost'
-collection = 'signals'
-name = 'eventsrc'
+database =
+  host: 'localhost'
+  collection: 'signals3'
+  name: 'eventsrc'
+  port: 27017
 
-getCollection = (callback) ->
-  db = new mongodb.Db(name, new mongodb.Server(host, DB_PORT, {}, {}))
+database.getCollection = (callback) ->
+  db = new mongodb.Db(@name,
+    new mongodb.Server(@host, @port, {}, {}))
   db.open (error, client) ->
     console.error "Error with database: " + error  if error
-    db.collection collection, (error, collection) ->
+    db.collection database.collection, (error, collection) ->
       callback collection
       db.close()
 
-root.database = {}
 
-root.database.insert = (entry) ->
-  getCollection (collection) ->
+database.insert = (entry) ->
+  @getCollection (collection) ->
     collection.insert entry
+
+root.database = database
 
 
 
