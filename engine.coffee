@@ -33,7 +33,6 @@ host = argv.host                   or 'localhost'
 xwork = argv.xwork                 or 'workX'
 xsignal = argv.xsignal             or 'exposures'
 xserver = argv.xserver             or 'servers'
-debugger
 connection = amqp.createConnection( { host: host, vhost: "v#{semver}" } )
 
 connection.on 'ready', =>

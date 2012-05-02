@@ -1,4 +1,4 @@
-# exec: start and stop servers per commands on git diff execexec queue
+# exec: start and stop servers per commands on exec queue
 #
 # usage: coffee exec [-v] [--suffix=]
 

@@ -1,3 +1,7 @@
+# journal: listen on all signals, write them to journal db
+#
+# usage: coffee journal [ -v ] [ --pid NUM ] [ --name ALPHANUM ]  [ AMQP-CONFIG ] [ MONGO-CONFIG ]
+#  See code below for AMQP-CONFIG and MONGO-CONFIG optional settings.
 semver = "0.1.1"
 
 {argv} = require('optimist')
@@ -22,7 +26,7 @@ logger.verbose = argv.v
 logger.log "eventlog: version #{semver}"
 
 pid = argv.pid    or 0
-name = argv.name  or 'eventLog'
+name = argv.name  or 'journal'
 pname = "#{name}/#{pid}"
 
 # AMQP config
