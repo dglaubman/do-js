@@ -3,7 +3,7 @@ semver = "0.1.1"
 {argv} = require('optimist')
 {heartbeat} = require('./heartbeat')
 {config} = require('./config')
-{database} = require('./database')
+{inserter} = require('./inserter')
 amqp = require('amqp')
 logger = require('./log')
 
@@ -35,10 +35,10 @@ xserver = argv.xserver or config.serverX
 
 
 # MongoDB config
-dbname = argv.db     or 'eventsrc'
-dbhost = argv.dbhost or 'localhost'
-dbport = argv.dbport or 27017
-collection = argv.collection  or 'signals'
+inserter.name       = argv.db         if argv.db
+inserter.host       = argv.dbhost     if argv.dbhost
+inserter.port       = argv.dbport     if argv.dbport
+inserter.collection = argv.collection if argv.collection
 
 connection = amqp.createConnection( { host: host, vhost: vhost } )
 connection.on 'ready', ->
@@ -46,14 +46,14 @@ connection.on 'ready', ->
     type: 'topic'
     autodelete: false
 
-  heartbeat connection, xserver, 'eventlog.ready', pname
+  heartbeat connection, xserver, 'journal.ready', pname
 
   # listen on signals, log to db
   connection.queue '', {exclusive: true}, (q) ->
     q.on 'error', error
     q.on 'queueBindOk', =>
       q.subscribe (message, headers, deliveryInfo) ->
-        database.insert
+        inserter.insert
           signal: deliveryInfo.routingKey
           ts: new Date().getTime()
           entry: JSON.parse message.data
