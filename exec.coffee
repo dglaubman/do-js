@@ -51,6 +51,8 @@ connection.on 'ready', ->
           [type,server,rakid,signals] = words.splice 1
           processName = "#{server}/#{procNum}"
           switch type
+            when 'adapter'
+              spawnCmd = "coffee edsadapter --name #{server}  --pid #{procNum} #{commonArgs}"
             when 'engine'
               spawnCmd = "coffee engine --name #{server}  --pid #{procNum} #{commonArgs}"
             when 'trigger'
