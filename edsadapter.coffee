@@ -1,4 +1,4 @@
-# edsadapter:  pop workQ, simulate workload, signal completion
+# edsadapter:  pop workQ, send event to RiskItemsPutQueue, signal completion
 #
 # usage: start edsadapter --name= --pid= [-v]
 # secondary options: [--xsignal=] [--xwork=] [--xserver=]
@@ -67,7 +67,7 @@ connection.on 'ready', =>
   signal = (rawmsg, headers) ->
 
     msg = JSON.parse rawmsg
-    #logger.log "triggered by: #{rawmsg}"
+    # send work off to Exposure Data Service
     edsX.publish edsQ, msg, { headers: headers }
 
     newmsg = JSON.stringify {
@@ -76,7 +76,7 @@ connection.on 'ready', =>
       rakIds: msg.rakIds.slice 0
       payload:
        src: msg.payloads[0].src
-       status: "Called Put on Eds RiskItems"
+       status: "Done (Called Put on Eds RiskItems)"
     }
     signalX.publish signalQ, newmsg
     logger.log "Signaled: #{newmsg}"
