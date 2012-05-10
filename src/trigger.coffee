@@ -56,6 +56,7 @@ connection.on 'ready', ->
       when 0                                       # pre v0.1.0 default
         workX.publish workQ, data
       when semver
+        logger.log "publish on #{workQ}"
         workX.publish( workQ, m ) if (m = build( signal, data ))
       else
         error "expected version #{semver}, got #{data.ver}"
@@ -79,14 +80,15 @@ connection.on 'ready', ->
         rakIds: data.rakIds
         payloads: []
         }
-      entry.payloads.push(data.payload)
+      data.payloads.forEach((value)->
+                              entry.payloads.push(value))
       entry.remaining = _.without( entry.remaining, signal )
       return null if not _.isEmpty( entry.remaining )
       m = JSON.stringify(
         ver: semver
         rakIds: _.union( entry.rakIds, data.rakIds )
         id: data.id
-        payloads: entry.payloads.slice 0
+        payloads: entry.payloads
         )
       logger.log "triggering: #{m}"
       delete cache[data.id]

@@ -51,14 +51,13 @@ connection.on 'ready', ->
           [type,server,rakid,signals] = words.splice 1
           processName = "#{server}/#{procNum}"
           switch type
-            when 'adapter'
-              spawnCmd = "coffee edsadapter --name #{server}  --pid #{procNum} #{commonArgs}"
             when 'engine'
-              spawnCmd = "coffee engine --name #{server}  --pid #{procNum} #{commonArgs}"
+              spawnCmd = "engine --name #{server}  --pid #{procNum} #{commonArgs}"
             when 'trigger'
-              spawnCmd = "coffee trigger --name #{server}  --pid #{procNum} --rakid #{rakid} --signals #{signals} #{commonArgs}"
-#          logger.log spawnCmd
-          proc = spawn( 'cmd', ['/s', '/c', spawnCmd ] )
+              spawnCmd = "trigger --name #{server}  --pid #{procNum} --rakid #{rakid} --signals #{signals} #{commonArgs}"
+          logger.log spawnCmd
+          proc = spawn( 'coffee', spawnCmd.split(' ')  )
+          #proc = spawn( 'cmd', ['/s', '/c', spawnCmd ] )
           proc.on 'exit', =>
             exchange = connection.exchange serverX, options = { type: 'topic'}, ->
               exchange.publish "#{type}.stopped", processName

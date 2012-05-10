@@ -7,7 +7,7 @@ root.config =
   workX:   'workX'
   signalX: 'signalX'
   execQ:   'execQ'
-  url:     'ws://ca1-ng-ds-22.rms.com:8001/amqp'
+  url:     'ws://cadt0734.rms.com:8001/amqp'
   virtualhost:  "v#{semver}"
   credentials: { username: 'guest', password: 'guest' }
 
