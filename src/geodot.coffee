@@ -1,4 +1,4 @@
-# geodot: start and stop servers per commands on exec queue
+#  geodot: start and stop servers per commands on exec queue
 #
 # usage: coffee geodot [-v] [--suffix=]
 
