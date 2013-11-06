@@ -55,6 +55,18 @@ connection.on 'ready', ->
               spawnCmd = "engine --name #{server}  --pid #{procNum} #{commonArgs}"
             when 'trigger'
               spawnCmd = "trigger --name #{server}  --pid #{procNum} --rakid #{rakid} --signals #{signals} #{commonArgs}"
+            when 'scale'
+              triggerCmd = "trigger --name #{server}  --pid #{procNum} --rakid #{rakid} --signals #{signals} #{commonArgs}"
+              engineCmd = "scale --name #{server}  --factor #{optArg} --pid #{procNum} --rakid #{rakid} --signals #{signals} #{commonArgs}"
+
+            when 'invert'
+              triggerCmd = "trigger --name #{server}  --pid #{procNum} --rakid #{rakid} --signals #{signals} #{commonArgs}"
+              engineCmd = "scale --name #{server}  --factor '-1.0' --pid #{procNum} --rakid #{rakid} --signals #{signals} #{commonArgs}"
+
+            when 'group'
+              triggerCmd = "trigger --name #{server}  --pid #{procNum} --rakid #{rakid} --signals #{signals} #{commonArgs}"
+              engineCmd = "group --name #{server}  --factor '-1.0' --pid #{procNum} --rakid #{rakid} --signals #{signals} #{commonArgs}"
+
           logger.log spawnCmd
           proc = spawn( 'coffee', spawnCmd.split(' ')  )
           #proc = spawn( 'cmd', ['/s', '/c', spawnCmd ] )

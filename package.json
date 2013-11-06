@@ -1,14 +1,17 @@
 {
-  "name"          : "do.js",
-  "description"   : "DO -- Dumb Orchestration infrastructure.",
-  "contributors"  : [
-                      {"name": "David Glaubman", "email": "dglaubman@rms.com" } 
-                    ],
-  "dependencies"  : { 
-      "amqp" : "0.1.x",
-      "mongodb" : "0.9.x",
-      "optimist" : "0.3.x",
-      "underscore" : "1.3.1"
-   },
-  "version"       : "0.1.1"
+  "name": "do.js",
+  "description": "DO -- Dumb Orchestration infrastructure.",
+  "contributors": [
+    {
+      "name": "David Glaubman",
+      "email": "dglaubman@rms.com"
+    }
+  ],
+  "dependencies": {
+    "amqp": "0.1.x",
+    "mongodb": "0.9.x",
+    "optimist": "0.3.x",
+    "underscore": "~1.5.2"
+  },
+  "version": "0.1.1"
 }
