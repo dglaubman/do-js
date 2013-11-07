@@ -5,13 +5,11 @@
 #
 semver = "0.1.1"                  # Semantic versioning: see semver.org
 
-amqp = require('amqp')
-argv = require('optimist').argv
-{bumpLoad,  heartbeat} = require('./heartbeat')
-logger = require('./log')
-{construct} = require('./util')
-util = require 'util'
 _ = require 'underscore'
+amqp = require 'amqp'
+{argv} = require 'optimist'
+{bumpLoad,  heartbeat} = require './heartbeat'
+logger = require './log'
 
 error = (err) -> logger.log err
 fatal = (err) ->
@@ -26,17 +24,12 @@ process.stdin.on 'end', ->
 
 # Parse input arguments, set up log
 logger.verbose = argv.v
-factor = argv.factor or 1
-invert = argv.invert or false
-factor = if invert then -1 * factor else factor
 name = argv.name or fatal( "No process name specified" )
 signalQ = workQ = name
 pid = argv.pid                     or 0
 pname = "#{name}/#{pid}"
 logger.prefix = "#{pname}: "
 host = argv.host                   or 'localhost'
-
-logger.log "Groups losses"
 
 # Exchange names
 xwork = argv.xwork                 or 'workX'
@@ -49,8 +42,12 @@ group = (losses) ->
     acc.loss += bucket.loss
     acc
 
-losses = ({loss: n, event: 1} for n in [ 1..10000 ]by 1000)
-logger.log util.inspect ( group losses ), false, null
+payloads = ({src: {loss: n, event: 1},status: 0} for n in [ 1..10000 ]by 1000)
+logger.inspect payloads
+losses = _.map payloads, (payload) -> payload.src
+logger.inspect losses
+
+logger.inspect group losses
 
 connection.on 'ready', =>
 #  logger.log "connected to amqp on #{host}"
@@ -84,7 +81,7 @@ connection.on 'ready', =>
       id: msg.id
       rakIds: msg.rakIds.slice 0
       payload:
-       src: scale msg.payloads[0].src
+       src: group (_.map msg.payloads, (payload) -> payload.src)
        status: status
     }
     signalX.publish signalQ, newmsg

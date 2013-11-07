@@ -1,17 +1,16 @@
-# scale:  pop workQ, scale input by factor, signal completion
+# scale:  scale input by factor
 #
-# usage: start scale --name=positionName [--factor <factor>] [--invert]--pid= [-v]
+# usage: start scale --name <position> { --factor <factor> | --invert } --pid <pid> [-v]
 # secondary options: [--xsignal=] [--xwork=] [--xserver=]
 #
 semver = "0.1.1"                  # Semantic versioning: see semver.org
 
-amqp = require('amqp')
-argv = require('optimist').argv
-{bumpLoad,  heartbeat} = require('./heartbeat')
-logger = require('./log')
-{construct} = require('./util')
-util = require 'util'
 _ = require 'underscore'
+amqp = require('amqp')
+logger = require('./log')
+{argv} = require('optimist')
+{bumpLoad,  heartbeat} = require('./heartbeat')
+{visitor} = require './visitor'
 
 error = (err) -> logger.log err
 fatal = (err) ->
@@ -26,10 +25,12 @@ process.stdin.on 'end', ->
 
 # Parse input arguments, set up log
 logger.verbose = argv.v
+
 factor = argv.factor or 1
 invert = argv.invert or false
 factor = if invert then -1 * factor else factor
 name = argv.name or fatal( "No process name specified" )
+
 signalQ = workQ = name
 pid = argv.pid                     or 0
 pname = "#{name}/#{pid}"
@@ -44,16 +45,9 @@ xsignal = argv.xsignal             or 'exposures'
 xserver = argv.xserver             or 'servers'
 connection = amqp.createConnection( { host: host, vhost: "v#{semver}" } )
 
-scale = (loss) ->
-   _.map( loss, (v,k) ->
-    if k.toUpperCase() is "LOSS"
-      logger.log "(k,v): #{k}, #{v * factor}"
-      construct k, [v * factor]
-    else
-      logger.log "(k,v): #{k}, #{v}"
-      construct k, [v] )
-
-logger.log util.inspect (_.object scale {'loss': 100, event: 1}), false, null
+scale = visitor (l) -> l * factor
+loss = { loss: 1234, event: 1, other: 'oh' }
+logger.inspect _.object scale loss
 
 connection.on 'ready', =>
 #  logger.log "connected to amqp on #{host}"

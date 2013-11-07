@@ -1,17 +1,17 @@
-# scale:  pop workQ, group input, signal completion
+# contract:  compute contract payout
 #
-# usage: start group --name=positionName --pid= [-v]
+# usage: start contract --cdl <filename> --name <position> --pid <pid> [-v]
 # secondary options: [--xsignal=] [--xwork=] [--xserver=]
 #
 semver = "0.1.1"                  # Semantic versioning: see semver.org
 
-amqp = require('amqp')
-argv = require('optimist').argv
-{bumpLoad,  heartbeat} = require('./heartbeat')
-logger = require('./log')
-{construct} = require('./util')
-util = require 'util'
 _ = require 'underscore'
+amqp = require 'amqp'
+{argv}  = require 'optimist'
+{bumpLoad,  heartbeat} = require './heartbeat'
+logger = require './log'
+fs = require 'fs'
+{visitor} = require './visitor'
 
 error = (err) -> logger.log err
 fatal = (err) ->
@@ -26,9 +26,8 @@ process.stdin.on 'end', ->
 
 # Parse input arguments, set up log
 logger.verbose = argv.v
-factor = argv.factor or 1
-invert = argv.invert or false
-factor = if invert then -1 * factor else factor
+cdl = argv.cdl
+
 name = argv.name or fatal( "No process name specified" )
 signalQ = workQ = name
 pid = argv.pid                     or 0
@@ -36,7 +35,7 @@ pname = "#{name}/#{pid}"
 logger.prefix = "#{pname}: "
 host = argv.host                   or 'localhost'
 
-logger.log "Groups losses"
+logger.log "Pays contract layer losses"
 
 # Exchange names
 xwork = argv.xwork                 or 'workX'
@@ -44,13 +43,34 @@ xsignal = argv.xsignal             or 'exposures'
 xserver = argv.xserver             or 'servers'
 connection = amqp.createConnection( { host: host, vhost: "v#{semver}" } )
 
-group = (losses) ->
-  _.reduce losses, (acc, bucket) ->
-    acc.loss += bucket.loss
-    acc
+compile = (text) ->
+  pattern = ///
+    ^\s*
+    (\d*\.?\d*)%                      # match share amount
+    \s+SHARE\s+OF\s+
+    (\d*\.?\d*|UNLIMITED)             # match limit amount
+    \s+XS\s+
+    (\d*\.?\d*)                       # match attachment amount
+    \s*$
+  ///i
+  [share, limit, attach] = text.match(pattern)[1..3]
+  share /= 100
+  if (_.isString limit) and (_.isEqual 'UNLIMITED', limit.toUpperCase())
+     limit = Infinity
+  (loss) ->
+    share * ( Math.min limit, Math.max( 0, loss - attach ) )
 
-losses = ({loss: n, event: 1} for n in [ 1..10000 ]by 1000)
-logger.log util.inspect ( group losses ), false, null
+text = fs.readFileSync( cdl + ".cdl" ).toString()
+payout = compile text
+
+xform = visitor payout
+
+pay = (losses) ->
+  _.map losses, (loss) ->
+    _.object xform loss
+
+losses = [ { loss: 10000, event: 1 }, { loss: 9600, event: 2} ]
+logger.inspect pay losses
 
 connection.on 'ready', =>
 #  logger.log "connected to amqp on #{host}"

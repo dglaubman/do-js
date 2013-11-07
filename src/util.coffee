@@ -21,6 +21,8 @@ root.cat = cat = () ->
 root.construct = construct = (h, t) ->
   cat [h], _.toArray t
 
+root.merge = (args...) -> _.extend.apply null, (construct {}, args)
+
 root.mapcat = mapcat = (f, coll) ->
   cat.apply null, _.map(coll, f)
 
