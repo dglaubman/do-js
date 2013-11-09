@@ -1,33 +1,32 @@
-# start_do: start triggers and engines from command file
+# dot: send commands to exec queue
 #
-# usage: coffee start_do [-v] [--suffix=]
+# usage: coffee dot [-v] --cmdfile <cmdfile> [--host <host>] [--vhost <vhost>] [--suffix <suffix>]
 
 semver = "0.1.1"                  # Semantic versioning: see semver.org
 
-amqp = require('amqp')
-fs = require('fs')
-logger = require('./log')
-argv = require('optimist').argv
-
-error = (err) -> logger.log err
-fatal = (err) ->
-  error err
-  process.exit 0
+require 'underscore'
+amqp = require 'amqp'
+fs = require 'fs'
+{argv} = require 'optimist'
+{logger, fatal, error, log, trace} = require('./log')
 
 host = argv.host     or 'localhost'
 suffix = argv.suffix or ''
 execQName = 'execQ'
-execX = 'signalX'
-logger.verbose = argv.v
-fname = argv.fname or 'start.json'
-logger.log "dot: version #{semver} starting on #{host} (vhost is v#{semver})"
+execX = 'workX'
+
+logger argv, "dot: "
+log "version #{semver} on #{host} (vhost is v#{semver})"
+cmds = fs.readFileSync( argv.cmdfile ).toString().split /\r?\n/
 
 connection = amqp.createConnection( { host: host, vhost: "v#{semver}" } )
 
-# publish message to start the dot
+# publish message to start geodot
 connection.on 'ready', ->
-  logger.log 'start ready'
-  ex = connection.exchange execX, options = {type: 'topic', autodelete: false}
-  logger.log "Starting DO from #{fname}"
-  cmds = fs.readFileSync(fname).toString()
-  ex.publish execQName, cmds
+  trace "  connected to #{host}"
+  ex = connection.exchange execX, options = { type: 'direct'}, ->
+    trace "  opened exchange #{execX}"
+    for cmd in cmds
+      ex.publish execQName, cmd
+      trace "    sending: #{cmd}"
+    process.exit 0

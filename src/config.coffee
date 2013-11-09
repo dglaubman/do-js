@@ -10,4 +10,3 @@ root.config =
   url:     'ws://cadt0734.rms.com:8001/amqp'
   virtualhost:  "v#{semver}"
   credentials: { username: 'guest', password: 'guest' }
-

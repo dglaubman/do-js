@@ -4,93 +4,93 @@
 # add comment
 semver = "0.1.1"                  # Semantic versioning: see semver.org
 
-amqp = require('amqp')
-spawn = require('child_process').spawn
-logger = require('./log')
-argv = require('optimist').argv
-
-error = (err) -> logger.log err
-fatal = (err) ->
-  error err
-  process.exit 0
+amqp = require 'amqp'
+{spawn} = require 'child_process'
+{logger, error, fatal, log, trace} = require './log'
+{argv} = require 'optimist'
 
 host = argv.host     or 'localhost'
 suffix = argv.suffix or ''
 
-logger.verbose = argv.v
-logger.log "exec: version #{semver} starting on #{host} (vhost is v#{semver})"
+logger argv, "exec: "
+log "on #{host} (vhost is v#{semver})"
 
 execQ = 'execQ' + suffix;
 workX = 'workX' + suffix;
 serverX = 'serverX' + suffix;
 signalX = 'signalX' + suffix;
-commonArgs = " -v --host #{host} --xsignal #{signalX} --xwork #{workX} --xserver #{serverX}"
+commonArgs = " -v -d --host #{host} --xsignal #{signalX} --xwork #{workX} --xserver #{serverX}"
 
 connection = amqp.createConnection( { host: host, vhost: "v#{semver}" } )
 
 # Listen for all messages sent to execQ queue
 connection.on 'ready', ->
-  logger.log 'exec: connection ok'
-  q = connection.queue('exec')
+  log 'exec: connection ok'
+  q = connection.queue "", (q) ->
+    trace "#{q.name} is open"
 
-  connection.exchange workX, options = { type: 'direct'}, ->
-    logger.log "exec: exchange '#{workX}' ok"
-    q.bind workX, execQ
-    logger.log "exec: queue '#{execQ}' bind ok"
+    connection.exchange workX, options = { type: 'direct'}, ->
+      log "exchange '#{workX}' ok"
+      q.bind workX, execQ
+      log "queue '#{execQ}' bind ok"
 
-    procs = {}
-    procNum = 0
+      procs = {}
+      procNum = 0
 
-    q.subscribe options={ack:true}, (message, headers, deliveryInfo) ->
-      logger.log message.data
-      words =  message.data.toString().split /\s+/g
+      q.subscribe options={ack:true}, (message, headers, deliveryInfo) ->
+        log message.data
+        words =  message.data.toString().split /\s+/g
 
-      q.shift()
-      switch words[0]
-        when 'start'
-          [type,server,rakid,signals] = words.splice 1
-          processName = "#{server}/#{procNum}"
-          switch type
-            when 'engine'
-              spawnCmd = "engine --name #{server}  --pid #{procNum} #{commonArgs}"
-            when 'trigger'
-              spawnCmd = "trigger --name #{server}  --pid #{procNum} --rakid #{rakid} --signals #{signals} #{commonArgs}"
-            when 'scale'
-              triggerCmd = "trigger --name #{server}  --pid #{procNum} --rakid #{rakid} --signals #{signals} #{commonArgs}"
-              engineCmd = "scale --name #{server}  --factor #{optArg} --pid #{procNum} --rakid #{rakid} --signals #{signals} #{commonArgs}"
+        q.shift()
+        switch words[0]
+          when 'start'
+            [type,server,rakid,option] = words.splice 1
+            processName = "#{server}/#{procNum}"
+            switch type
+              when 'test'
+                cmd = "engine.coffee --op scale --factor 1.0 --test #{option} --name #{server}
+                  --pid #{procNum} #{commonArgs}"
 
-            when 'invert'
-              triggerCmd = "trigger --name #{server}  --pid #{procNum} --rakid #{rakid} --signals #{signals} #{commonArgs}"
-              engineCmd = "scale --name #{server}  --factor '-1.0' --pid #{procNum} --rakid #{rakid} --signals #{signals} #{commonArgs}"
+              when 'trigger'
+                cmd = "trigger.coffee -v  --name #{server}
+                  --pid #{procNum} --rakid #{rakid} --signals #{option} #{commonArgs}"
 
-            when 'group'
-              triggerCmd = "trigger --name #{server}  --pid #{procNum} --rakid #{rakid} --signals #{signals} #{commonArgs}"
-              engineCmd = "group --name #{server}  --factor '-1.0' --pid #{procNum} --rakid #{rakid} --signals #{signals} #{commonArgs}"
+              when 'contract'
+                cmd = "engine.coffee --op contract --cdl #{option}
+                  --name #{server} --pid #{procNum} --rakid #{rakid}  #{commonArgs}"
 
-          logger.log spawnCmd
-          proc = spawn( 'coffee', spawnCmd.split(' ')  )
-          #proc = spawn( 'cmd', ['/s', '/c', spawnCmd ] )
-          proc.on 'exit', =>
-            exchange = connection.exchange serverX, options = { type: 'topic'}, ->
-              exchange.publish "#{type}.stopped", processName
-              logger.log "#{processName} stopped"
-          proc.stderr.setEncoding 'utf8'
-          proc.stderr.on 'data', (data) -> logger.log data
-          proc.stdout.on 'data',  (data) -> logger.log data
-          procs[processName] = proc
-          procNum++
+              when 'scale'
+                cmd = "engine.coffee --op scale --factor #{option}
+                  --name #{server}  --pid #{procNum} --rakid #{rakid} #{commonArgs}"
 
-        when 'stop'
-          name = words[1]
-          try
-            procs[name].stdin.end()
-#            logger.log "exec: stopping #{name}"
-          catch error
-            logger.log "exec: can't stop #{name} because does not exist. Signaling #{name} stopped. "
+              when 'invert'
+                cmd = "engine.coffee --op invert --name #{server}
+                  --pid #{procNum} --rakid #{rakid} #{commonArgs}"
+
+              when 'group'
+                cmd = "engine.coffee --op group --name #{server}
+                  --pid #{procNum} --rakid #{rakid} #{commonArgs}"
+
+            try
+              # proc = spawn 'node', ["coffee", "-v"], {PATH: "/usr/local/bin:/bin/:/mingw/bin:/cygdrive/e/src/nodejs"}
+              proc = spawn( 'cmd', ['/s', '/c', 'coffee ' + cmd ] )
+              proc.on 'exit', =>
+                exchange = connection.exchange serverX, options = { type: 'topic'}, ->
+                  exchange.publish "#{type}.stopped", processName
+                  log "#{processName} stopped"
+              proc.stderr.setEncoding 'utf8'
+              proc.stderr.on 'data', (data) -> error "Error: #{data}"
+              proc.stdout.on 'data',  (data) -> log data
+              procs[processName] = proc
+              procNum++
+            catch  e
+              error e
+          when 'stop'
+            name = words[1]
+            try
+              procs[name].stdin.end()
+  #            log "exec: stopping #{name}"
+            catch error
+            log "exec: can't stop #{name} because does not exist. Signaling #{name} stopped. "
             exchange = connection.exchange serverX, options = { type: 'topic'}, ->
               exchange.publish "#{type}.stopped", name
-
-
-
-
-
