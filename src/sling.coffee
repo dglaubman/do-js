@@ -27,7 +27,7 @@ host = argv.host                   or 'localhost'
 logger argv, "#{pname}: "
 
 # Set up AMQP Exchanges
-xsignal = argv.xsignal             or 'exposures'
+xsignal = argv.xsignal             or 'signalX'
 xserver = argv.xserver             or 'servers'
 
 connection = amqp.createConnection( { host: host, vhost: "v#{semver}" } )

@@ -72,7 +72,6 @@ connection.on 'ready', =>
       rakIds: msg.rakIds.slice 0
       payload: transform msg.payloads
     }
-    inpect newmsg.payload
     # signal completion
     signalX.publish signalQ, newmsg
     log "Signaled: #{newmsg}"

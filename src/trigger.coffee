@@ -37,9 +37,9 @@ connection = amqp.createConnection( { host: host, vhost: "v#{semver}" } )
 connection.on 'ready', ->
 
   workX = connection.exchange xwork, options = { type: 'direct'},
-    ->  # log "exchange '#{xwork}' ok"
+    ->  log "exchange '#{xwork}' ok"
   signalX = connection.exchange xsignal, options = { type: 'topic', autodelete: false },
-    ->  # log "exchange '#{xsignal}' ok"
+    ->  log "exchange '#{xsignal}' ok"
 
   # Send ready status to trigger.ready topic at regular intervals
   heartbeat connection, xserver, 'trigger.ready', pname
@@ -59,8 +59,8 @@ connection.on 'ready', ->
 
   # listen on signals, fire trigger
   connection.queue '', {exclusive: true}, (q) ->
-    trace signals
-    log "binding queue to keys: #{signals}"
+    #trace q
+    trace "binding queue to keys: #{signals}"
     q.on 'error', error
     q.on 'queueBindOk', ->
       trace "queue bind ok"
@@ -68,7 +68,7 @@ connection.on 'ready', ->
         trace "recd message: #{deliveryInfo}"
         trigger deliveryInfo.routingKey, message.data
     q.bind(signalX, signal) for signal in signals
-    log "listening on #{filter.signals} (rak #{filter.id})"
+    trace "listening on #{filter.signals} (rak #{filter.id})"
 
   cache = {}
   build =  (signal, data ) ->
