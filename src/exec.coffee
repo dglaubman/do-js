@@ -13,15 +13,16 @@ host = argv.host     or 'localhost'
 suffix = argv.suffix or ''
 
 logger argv, "exec: "
-log "on #{host} (vhost is v#{semver})"
+vhost = argv.vhost or "v#{semver}"
+log "on #{host} (vhost is #{vhost})"
 
-execQ = 'execQ' + suffix;
-workX = 'workX' + suffix;
-serverX = 'serverX' + suffix;
-signalX = 'signalX' + suffix;
+execQ = 'execQ' + suffix
+workX = 'workX' + suffix
+serverX = 'serverX' + suffix
+signalX = 'signalX' + suffix
 commonArgs = " -v -d --host #{host} --xsignal #{signalX} --xwork #{workX} --xserver #{serverX}"
 
-connection = amqp.createConnection( { host: host, vhost: "v#{semver}" } )
+connection = amqp.createConnection( { host, vhost } )
 
 # Listen for all messages sent to execQ queue
 connection.on 'ready', ->
