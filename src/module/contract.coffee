@@ -3,7 +3,7 @@ root = exports ? this
 _ = require 'underscore'
 fs = require 'fs'
 {visit} = require '../visitor'
-{trace} = require '../log'
+{trace, error} = require '../log'
 
 compile = (text) ->
   pattern = ///
@@ -33,7 +33,8 @@ root.init = (argv) ->
 
 
 root.run = (losses) ->
-  trace "CDL worker: loss: "
-  _.map losses, (loss) ->
-    _.object pay loss
-
+  try
+    _.map losses, (loss) ->
+      _.object pay loss
+  catch e
+    error e

@@ -19,8 +19,8 @@ process.stdin.on 'end', ->
   process.exit 0
 
 # Parse input arguments, set up log
-name = argv.name or fatal( "No process name specified" )
-signalQ = workQ = name
+name = "sling"
+signalQ = argv.signal
 pid = argv.pid                     or 0
 pname = "#{name}/#{pid}"
 host = argv.host                   or 'localhost'
@@ -53,10 +53,9 @@ connection.on 'ready', =>
       ver: semver
       id: argv.id
       rakIds: [argv.rak]
-      payload: test.run transform, payloads
+      payload: transform payloads
     }
     # signal completion
     signalX.publish signalQ, newmsg
-    trace payloads, null
   catch e
     fatal e

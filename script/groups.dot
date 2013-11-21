@@ -1,5 +1,4 @@
-start scale Cat1.Signed 1 .07
-start contract Cat1 1 10x10
-start invert .Cat1.Signed 1
-start scale Port1 1 1
-start group 'Port1 net of Cat1' 1
+start scale Cat1.Signed .07
+start trigger Cat1.Signed Cat1 1
+start scale Cat1 1.5
+start trigger Cat1 PortA 1

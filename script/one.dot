@@ -1,2 +1,2 @@
-start scale Cat1.Signed 1 .07
-start trigger Cat1.Signed 1 Cat1
+start scale Cat1.Signed .07
+start trigger Cat1.Signed Cat1 1

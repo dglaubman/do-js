@@ -1,6 +1,6 @@
 # trigger: when correlated signals arrive, concatenate payloads and send to workQ
 #
-# usage: start trigger --name= --pid= [-v] [--signals=..,..]  [--workQ=]  [--rakid=]
+# usage: start trigger --name= --pid= [-v] [--signals=..,..]  [--workQ=]  [--rak=]
 #   secondary options:  [--xwork=work exchange] [--xsignal=signals exchange] [--xserver= server exchange]
 #
 
@@ -25,70 +25,72 @@ xwork = argv.xwork                 or 'workX'        # pre v0.1.0 default
 xsignal = argv.xsignal             or 'exposures'    # pre v0.1.0 default
 xserver = argv.xserver             or "servers"      # pre v0.1.0 default
 signals = argv.signals?.split(',')
-rakId = argv.rakid
+rak = argv.rak
 workQ = name
 pname = "#{name}/#{pid}"
 logger argv, "Trigger #{pname}: "
 
-filter = {  'signals': signals, id: rakId }
+traceAll = (x) -> trace x, 99
+
+filter = {  'signals': signals, id: rak }
 
 connection = amqp.createConnection( { host: host, vhost: "v#{semver}" } )
 
 connection.on 'ready', ->
 
   workX = connection.exchange xwork, options = { type: 'direct'},
-    ->  log "exchange '#{xwork}' ok"
+    ->  traceAll "exchange #{xwork} ok"
   signalX = connection.exchange xsignal, options = { type: 'topic', autodelete: false },
-    ->  log "exchange '#{xsignal}' ok"
+    ->  traceAll "exchange #{xsignal} ok"
 
   # Send ready status to trigger.ready topic at regular intervals
   heartbeat connection, xserver, 'trigger.ready', pname
 
   # when correlated signals arrive, concatenate payloads and funnel request to work queue.
   trigger = (signal, raw) ->
-    log "#{signal} > #{raw}"
+    traceAll "#{signal} > #{raw}"
     data = JSON.parse raw
     switch data.ver or 0
       when 0                                       # pre v0.1.0 default
         workX.publish workQ, data
       when semver
-        log "publish on #{workQ}"
-        workX.publish( workQ, m ) if (m = build( signal, data ))
+        if (m = build( signal, data ))
+          workX.publish( workQ, m ) 
+          traceAll "publish on #{workQ}"
       else
         error "expected version #{semver}, got #{data.ver}"
 
   # listen on signals, fire trigger
   connection.queue '', {exclusive: true}, (q) ->
-    #trace q
-    trace "binding queue to keys: #{signals}"
+    traceAll "binding queue to keys: #{signals}"
     q.on 'error', error
     q.on 'queueBindOk', ->
-      trace "queue bind ok"
+      traceAll "queue bind ok"
       q.subscribe (message, headers, deliveryInfo) ->
-        trace "recd message: #{deliveryInfo}"
+        trace "recd message from: #{deliveryInfo.routingKey}"
         trigger deliveryInfo.routingKey, message.data
     q.bind(signalX, signal) for signal in signals
     trace "listening on #{filter.signals} (rak #{filter.id})"
 
   cache = {}
-  build =  (signal, data ) ->
-    return null if data.ver isnt semver
-    return null unless (filter.id in data.rakIds)
+  build =  (signal, msg ) ->
+    return null if msg.ver isnt semver
+    return null unless (filter.id in msg.rakIds)
     if signal in filter.signals
-      entry = cache[ data.id ] or= {
+      entry = cache[ msg.id ] or= {
         remaining: filter.signals
-        rakIds: data.rakIds
+        rakIds: msg.rakIds
         payloads: []
         }
-      entry.payloads.push data.payload
+      entry.payloads.push msg.payload
       entry.remaining = _.without( entry.remaining, signal )
       return null if not _.isEmpty( entry.remaining )
       m = JSON.stringify(
         ver: semver
-        rakIds: _.union( entry.rakIds, data.rakIds )
-        id: data.id
+        rakIds: _.union( entry.rakIds, msg.rakIds )
+        id: msg.id
         payloads: entry.payloads
         )
       log "triggering: #{m}"
-      delete cache[data.id]
+      delete cache[msg.id]
       m

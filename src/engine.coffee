@@ -1,6 +1,6 @@
 # engine:  pop workQ, do work, signal completion, repeat
 #
-# usage: start engine --cmd <cmd> --name <name> --pid <pid> [-v]
+# usage: start engine --cmd <cmd> --name <name> --pid <pid> [-v] [-d [level]]
 # secondary options: [--xsignal=] [--xwork=] [--xserver=]
 
 semver = "0.1.1"                  # Semantic versioning: see semver.org
@@ -25,6 +25,7 @@ pid = argv.pid                     or 0
 pname = "#{name}/#{pid}"
 host = argv.host                   or 'localhost'
 logger argv, "#{pname}: "
+traceAll = (x) -> trace x, 99
 
 # Set up AMQP Exchanges
 xwork = argv.xwork                 or 'workX'
@@ -42,37 +43,39 @@ if argv.test
   test.run transform, payloads
 
 connection.on 'ready', =>
-  trace "connected to amqp on #{host}"
+  traceAll "connected to amqp on #{host}"
   signalX = connection.exchange xsignal, options = {
     type: 'topic'
     autodelete: false },
-    ->  # log "exchange '#{xsignal}' ok"
+    ->  traceAll "exchange '#{xsignal}' ok"
 
   workX = connection.exchange xwork, options = { type: 'direct'},
-    -> # log "exchange '#{xwork}' ok"
+    -> traceAll "exchange '#{xwork}' ok"
 
   # Send status/load to server status topic at regular intervals
   heartbeat connection, xserver, 'engine.ready', pname
 
   connection.queue workQ, (q) ->   # use workQ, not '' since want to share work
-    log "started"
-    q.on 'error', error
+    #trace "started"
+    q.on 'error', (e) -> error e
     q.on 'queueBindOk', ->
-      # log "'#{workQ}' bound ok"
+      # trace "#{workQ} bound ok"
       # listen on workQ queue, simulate work/load, signal result
       q.subscribe (message, headers, deliveryInfo) ->
         work JSON.parse message.data
     q.bind(workX, workQ)
 
   # do work
-  work = (msg) ->
-    newmsg = JSON.stringify {
-      ver: semver
-      id: msg.id
-      rakIds: msg.rakIds.slice 0
-      payload: transform msg.payloads
-    }
-    # signal completion
-    signalX.publish signalQ, newmsg
-    log "Signaled: #{newmsg}"
-
+  try
+    work = (msg) ->
+      newmsg = JSON.stringify {
+        ver: semver
+        id: msg.id
+        rakIds: msg.rakIds
+        payload: transform msg.payloads
+      }
+      # signal completion
+      signalX.publish signalQ, newmsg
+      trace "Signaled: #{newmsg}"
+  catch e
+    error e

@@ -4,9 +4,11 @@ root = exports ? this
 prefix = ""
 verbose = false
 debug = false
+debugLevel = 1
 
 logger = (argv, pre) ->
   debug = argv.d
+  if typeof debug is 'number' then debugLevel = debug
   verbose = argv.v
   if pre then prefix = pre
 
@@ -17,11 +19,12 @@ write = (o) ->
 log =  (o) ->
   write o if verbose
 
-trace = (o) ->
-  write (util.inspect o, false, null) if debug
+trace = (o, level) ->
+  level or= 0
+  write (util.inspect o, false, null) if debugLevel > level
 
 error = (err) ->
-  write err
+  write " Error: #{err}"
 
 fatal = (err) ->
   error err

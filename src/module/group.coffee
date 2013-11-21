@@ -7,5 +7,4 @@ root.run = (losses) ->
     acc.loss += bucket.loss
     acc
 
-
 root.init = ->

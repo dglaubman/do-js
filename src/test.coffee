@@ -12,7 +12,7 @@ root.init = (argv) ->
 
 root.run = (transform, input) ->
   start = new Date()
-  trace transform input
+  trace (transform input)
   stop = new Date()
   log "  done: #{stop - start}ms"
 

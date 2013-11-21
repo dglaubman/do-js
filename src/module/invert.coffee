@@ -8,8 +8,6 @@ factor = -1
 scale = visit (loss) -> loss * factor
 
 root.run = (losses) ->
-  trace "Invert worker: loss: "
-  trace losses
   _.map losses, (loss) ->
     _.object scale loss
 

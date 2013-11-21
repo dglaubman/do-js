@@ -25,7 +25,8 @@ root.load = (argv) ->
   {run, init} = require "./module/#{module}"
   init argv
   (payloads) ->
-    data = run (_.map payloads, (payload) -> payload.data)
+    trace payloads
+    data = run (mapcat ((payload) -> payload.data), payloads)
     stats = mapcat ((payload) -> payload.trail), payloads
     trail = construct { op: module, status: Status.OK.name }, [stats]
     { data, trail }
