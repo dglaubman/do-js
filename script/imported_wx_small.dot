@@ -1,0 +1,29 @@
+start group Acme:Net 
+start trigger Acme:Net Acme:Gross,~Acme:Ceded 1
+start group Acme:Gross 
+start trigger Acme:Gross Acme:PortA 1
+start group Acme:PortA 
+start invert ~Acme:Ceded 
+start trigger ~Acme:Ceded Acme:Ceded 1
+start group Acme:Ceded 
+start trigger Acme:Ceded Acme:PerRisk 1
+start group Acme:Cat 
+start group Acme:PerRisk 
+start trigger Acme:PerRisk Acme:WX1.Placed 1
+start group Acme:Fac 
+start scale Acme:WX1.Placed 0.4
+start trigger Acme:WX1.Placed Market:WX1 1
+start contract Market:WX1 10x10
+start trigger Market:WX1 Acme:PortA 1
+start group Our:Net 
+start trigger Our:Net Our:Assumed,~Our:Ceded 1
+start invert ~Our:Ceded 
+start trigger ~Our:Ceded Our:Ceded 1
+start group Our:Assumed 
+start trigger Our:Assumed Our:WX1.Signed 1
+start group Our:Ceded 
+start trigger Our:Ceded Our:WX1.Ceded 1
+start scale Our:WX1.Ceded 0.5
+start trigger Our:WX1.Ceded Our:WX1.Signed 1
+start scale Our:WX1.Signed 0.07
+start trigger Our:WX1.Signed Market:WX1 1
