@@ -1,17 +1,17 @@
 root = exports ? this
 
 root.bumpLoad = (l) ->
-  currentLoad += (l)
+  currentLoad.push l
   pulse()
 
 pulse = ->
-currentLoad = 0
+currentLoad = []
 
 # Publish server ready and current load every interval millisecs
 root.heartbeat = ( conn, serverX, topic, pname, interval = 5000 ) ->
 
   pulse = ->
-    exchange.publish topic, "name: #{pname}, load: #{currentLoad}"
+    exchange.publish topic, "name|#{pname}|load|#{currentLoad}"
   timerFn = ->
     pulse()
     setInterval ( ->

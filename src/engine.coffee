@@ -68,12 +68,17 @@ connection.on 'ready', =>
   # do work
   try
     work = (msg) ->
+      log "about to transform payloads"
+      payload = transform msg.payloads
+      log "transformed payload is:"
+      traceAll payload
       newmsg = JSON.stringify {
         ver: semver
         id: msg.id
         rakIds: msg.rakIds
-        payload: transform msg.payloads
+        payload: payload
       }
+      bumpLoad (_.reduce payload.data, ((loss, d) -> loss + d.loss), 0)
       # signal completion
       signalX.publish signalQ, newmsg
       trace "Signaled: #{newmsg}"

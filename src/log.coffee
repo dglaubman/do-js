@@ -4,11 +4,13 @@ root = exports ? this
 prefix = ""
 verbose = false
 debug = false
-debugLevel = 1
+debugLevel = 0
 
 logger = (argv, pre) ->
   debug = argv.d
-  if typeof debug is 'number' then debugLevel = debug
+  switch typeof debug
+    when 'number' then debugLevel = debug
+    when 'boolean' then debugLevel = 1
   verbose = argv.v
   if pre then prefix = pre
 
