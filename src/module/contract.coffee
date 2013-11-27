@@ -5,6 +5,8 @@ fs = require 'fs'
 {visit} = require '../visitor'
 {trace, error} = require '../log'
 
+MAXLINELEN = 80
+
 compile = (text) ->
   pattern = ///
     ^\s*
@@ -15,12 +17,15 @@ compile = (text) ->
     (\d*\.?\d*)                       # match attachment amount
     \s*$
   ///i
-  [share, limit, attach] = text.match(pattern)[1..3]
-  share /= 100
-  if (_.isString limit) and (_.isEqual 'UNLIMITED', limit.toUpperCase())
-     limit = Infinity
-  (loss) ->
-    share * ( Math.min limit, Math.max( 0, loss - attach ) )
+  try
+    [share, limit, attach] = text.match(pattern)[1..3]
+    share /= 100
+    if (_.isString limit) and (_.isEqual 'UNLIMITED', limit.toUpperCase())
+      limit = Infinity
+    (loss) ->
+      share * ( Math.min limit, Math.max( 0, loss - attach ) )
+  catch e
+    error "#{e}: " + text[..80]
 
 pay = ->
 

@@ -11,6 +11,8 @@ amqp = require 'amqp'
 {bumpLoad,  heartbeat} = require './heartbeat'
 {load} = require './loader'
 {logger, log, trace, error, fatal} = require './log'
+encode = (arg) -> encodeURIComponent arg
+decode = (arg) -> decodeURIComponent arg
 
 # If parent says so, exit
 process.stdin.resume()
@@ -20,12 +22,15 @@ process.stdin.on 'end', ->
 
 # Parse input arguments, set up log
 name = argv.name or fatal( "No process name specified" )
-signalQ = workQ = name
+signalQ = workQ = decode name
 pid = argv.pid                     or 0
-pname = "#{name}/#{pid}"
+pname = "#{decode name}/#{pid}"
 host = argv.host                   or 'localhost'
 logger argv, "#{pname}: "
 traceAll = (x) -> trace x, 99
+
+# Say hello
+log "(#{argv.op})"
 
 # Set up AMQP Exchanges
 xwork = argv.xwork                 or 'workX'

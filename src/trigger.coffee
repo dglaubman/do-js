@@ -12,6 +12,8 @@ amqp = require 'amqp'
 {argv} = require 'optimist'
 {heartbeat} = require './heartbeat'
 {logger, log, trace, error, fatal} = require './log'
+encode = (arg) -> encodeURIComponent arg
+decode = (arg) -> decodeURIComponent arg
 
 # If parent says so, exit
 process.stdin.resume()
@@ -24,15 +26,19 @@ host = argv.host                   or 'localhost'
 xwork = argv.xwork                 or 'workX'        # pre v0.1.0 default
 xsignal = argv.xsignal             or 'exposures'    # pre v0.1.0 default
 xserver = argv.xserver             or "servers"      # pre v0.1.0 default
-signals = argv.signals?.split(',')
+fatal "must specify signals to listen on" unless argv.signals
+
+signals = (decode argv.signals).split(',')
 rak = argv.rak
-workQ = name
-pname = "#{name}/#{pid}"
+workQ = decode name
+pname = "#{decode name}/#{pid}"
 logger argv, "Trigger #{pname}: "
+
+log "#{decode signals} -> #{decode name}"
 
 traceAll = (x) -> trace x, 99
 
-filter = {  'signals': signals, id: rak }
+filter = {  'signals': (decode signals), id: rak }
 
 connection = amqp.createConnection( { host: host, vhost: "v#{semver}" } )
 
@@ -55,7 +61,7 @@ connection.on 'ready', ->
         workX.publish workQ, data
       when semver
         if (m = build( signal, data ))
-          workX.publish( workQ, m ) 
+          workX.publish( workQ, m )
           traceAll "publish on #{workQ}"
       else
         error "expected version #{semver}, got #{data.ver}"

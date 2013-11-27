@@ -12,9 +12,9 @@ amqp = require 'amqp'
 host = argv.host     or 'localhost'
 suffix = argv.suffix or ''
 
-logger argv, "exec: "
+logger argv
 vhost = argv.vhost or "v#{semver}"
-log "on #{host} (vhost is #{vhost})"
+log "exec: on #{host} (vhost is #{vhost})"
 
 execQ = 'execQ' + suffix
 workX = 'workX' + suffix
@@ -35,12 +35,12 @@ connection = amqp.createConnection( { host, vhost } )
 connection.on 'ready', ->
   trace 'exec: connection ok'
   q = connection.queue "", (q) ->
-    trace "#{q.name} is open"
+    trace "exec: #{q.name} is open"
 
     connection.exchange workX, options = { type: 'direct'}, ->
-      trace "exchange '#{workX}' ok"
+      trace "exec: exchange '#{workX}' ok"
       q.bind workX, execQ
-      log "queue '#{execQ}' bind ok"
+      log "exec: queue '#{execQ}' bind ok"
 
       procs = {}
       procNum = 0

@@ -1,6 +1,7 @@
 # dot: send commands to exec queue
 #
-# usage: coffee dot [-v] --cmdfile <cmdfile> [--host <host>] [--vhost <vhost>] [--suffix <suffix>]
+
+usage = "usage: coffee dot.coffee --cmdfile <cmdfile> [-v] [--host <host>] [--vhost <vhost>] [--suffix <suffix>]"
 
 semver = "0.1.1"                  # Semantic versioning: see semver.org
 
@@ -18,8 +19,8 @@ execX = 'workX'
 
 logger argv, "dot: "
 log "version #{semver} on #{host} (vhost is v#{semver})"
-trace argv.cmdfile
-cmds = fs.readFileSync( argv.cmdfile ).toString().split /\r?\n/
+cmdFile = argv.cmdFile or fatal usage
+cmds = fs.readFileSync( cmdFile ).toString().split /\r?\n/
 
 connection = amqp.createConnection( { host: host, vhost: "v#{semver}" } )
 
