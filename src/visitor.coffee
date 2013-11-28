@@ -11,6 +11,6 @@ root.visit = visitor = (f) ->
         trace k
         trace v
       if k.toUpperCase() is "LOSS"
-        construct k, [f v]
+       construct k, [+((f v).toFixed 3)]
       else
         construct k, [v] )

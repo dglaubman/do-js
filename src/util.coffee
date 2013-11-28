@@ -1,6 +1,9 @@
 root = exports ? this
 _ = require( 'underscore' )
 
+root.encode = encode = (arg) -> encodeURIComponent arg
+root.decode = decode = (arg) -> decodeURIComponent arg
+
 root.fail = fail = (x) -> throw x
 
 root.existy = existy = (x) -> x?

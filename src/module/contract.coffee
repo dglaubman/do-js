@@ -18,6 +18,7 @@ compile = (text) ->
     \s*$
   ///i
   try
+    attach = 0
     [share, limit, attach] = text.match(pattern)[1..3]
     share /= 100
     if (_.isString limit) and (_.isEqual 'UNLIMITED', limit.toUpperCase())
@@ -37,9 +38,8 @@ root.init = (argv) ->
   pay = visit payout
 
 
-root.run = (losses) ->
-  try
-    _.map losses, (loss) ->
-      _.object pay loss
-  catch e
-    error e
+root.run = (payloads) ->
+  throw "contract must have a single payload" unless payloads.length is 1
+  losses = payloads[0]
+  _.map losses, (loss) ->
+    _.object pay loss

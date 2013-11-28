@@ -32,8 +32,11 @@ fatal = (err) ->
   error err
   process.exit 0
 
+traceAll = (x) -> trace x, 99
+
 root.logger = logger
 root.log = log
 root.trace = trace
 root.fatal = fatal
 root.error = error
+root.traceAll = traceAll

@@ -1,31 +1,31 @@
 start group Ceded 
-start trigger Ceded Fac%2CPerRisk%2CCat 1
+start trigger Ceded Fac,PerRisk,Cat 1
 start group Fac 
 start trigger Fac Fac1 1
 start group PerRisk 
-start trigger PerRisk SST%2CPRT 1
+start trigger PerRisk SST,PRT 1
 start invert ~Fac 
 start trigger ~Fac Fac 1
 start group Gross%20net%20of%20SST 
-start trigger Gross%20net%20of%20SST Gross%2C~SST 1
+start trigger Gross%20net%20of%20SST Gross,~SST 1
 start invert ~SST 
 start trigger ~SST SST 1
-start contract PRT 20x15
+start contract PRT PRT
 start trigger PRT Gross%20net%20of%20SST 1
-start contract Fac1 1x1
+start contract Fac1 Fac1
 start trigger Fac1 Gross 1
-start contract SST sst
+start contract SST SST
 start trigger SST Gross%20net%20of%20Fac 1
 start group Gross%20net%20of%20Fac 
-start trigger Gross%20net%20of%20Fac Gross%2C~Fac 1
+start trigger Gross%20net%20of%20Fac Gross,~Fac 1
 start group Cat 
-start trigger Cat Cat1.Placed%2CCat2.Placed 1
+start trigger Cat Cat1.Placed,Cat2.Placed 1
 start scale Cat1.Placed 0.3
 start trigger Cat1.Placed Cat1 1
 start scale Cat2.Placed 0.45
 start trigger Cat2.Placed Cat2 1
-start contract Cat1 20x5
+start contract Cat1 Cat1
 start trigger Cat1 Gross 1
-start contract Cat2 10x10
+start contract Cat2 Cat2
 start trigger Cat2 Gross 1
 start group Gross 

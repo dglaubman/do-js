@@ -60,7 +60,7 @@ connection.on 'ready', ->
                   --pid #{procNum} #{commonArgs}"
 
               when 'trigger'
-                cmd = "trigger.coffee -v  --name #{server} --signals #{option} --rak #{rak}
+                cmd = "#{nodeInspectorArg procNum} trigger.coffee -v  --name #{server} --signals #{option} --rak #{rak}
                   --pid #{procNum}  #{commonArgs}"
 
               when 'contract'
@@ -87,18 +87,18 @@ connection.on 'ready', ->
                   exchange.publish "#{type}.stopped", processName
                   log "#{processName} stopped"
               proc.stderr.setEncoding 'utf8'
-              proc.stderr.on 'data', (data) -> error "#{data}"
+              proc.stderr.on 'data', (data) -> trace "#{processName} stderr: #{data}", -1
               proc.stdout.on 'data',  (data) -> log data
               procs[processName] = proc
               procNum++
             catch  e
-              error e
+              error  "#{processName}: #{e}"
           when 'stop'
             name = words[1]
             try
               procs[name].stdin.end()
               log "stopping #{name}"
             catch error
-            error "can't stop #{name} because does not exist. Signaling #{name} stopped. "
+              error "can't stop #{name} because does not exist. Signaling #{name} stopped. "
             exchange = connection.exchange serverX, options = { type: 'topic'}, ->
               exchange.publish "#{type}.stopped", name

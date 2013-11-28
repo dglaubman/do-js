@@ -1,5 +1,5 @@
 start group ABC%2C%20XYZ%20net%20of%20DEF%2C%20GHI 
-start trigger ABC%2C%20XYZ%20net%20of%20DEF%2C%20GHI ABC%2CXYZ%2C~DEF%2C~GHI 1
+start trigger ABC%2C%20XYZ%20net%20of%20DEF%2C%20GHI ABC,XYZ,~DEF,~GHI 1
 start group ABC 
 start group XYZ 
 start invert ~DEF 

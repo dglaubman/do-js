@@ -1,5 +1,5 @@
 start group Acme%3ANet 
-start trigger Acme%3ANet Acme%3AGross%2C~Acme%3ACeded 1
+start trigger Acme%3ANet Acme%3AGross,~Acme%3ACeded 1
 start group Acme%3AGross 
 start trigger Acme%3AGross Acme%3APortA 1
 start group Acme%3APortA 
@@ -13,10 +13,10 @@ start trigger Acme%3APerRisk Acme%3AWX1.Placed 1
 start group Acme%3AFac 
 start scale Acme%3AWX1.Placed 0.4
 start trigger Acme%3AWX1.Placed Market%3AWX1 1
-start contract Market%3AWX1 10x10
+start contract Market%3AWX1 Market:WX1
 start trigger Market%3AWX1 Acme%3APortA 1
 start group Our%3ANet 
-start trigger Our%3ANet Our%3AAssumed%2C~Our%3ACeded 1
+start trigger Our%3ANet Our%3AAssumed,~Our%3ACeded 1
 start invert ~Our%3ACeded 
 start trigger ~Our%3ACeded Our%3ACeded 1
 start group Our%3AAssumed 

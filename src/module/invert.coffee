@@ -7,7 +7,9 @@ _ = require 'underscore'
 factor = -1
 scale = visit (loss) -> loss * factor
 
-root.run = (losses) ->
+root.run = (payloads) ->
+  throw "scale must have a single payload" unless payloads.length is 1
+  losses = payloads[0]
   _.map losses, (loss) ->
     _.object scale loss
 

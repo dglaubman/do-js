@@ -10,9 +10,8 @@ amqp = require 'amqp'
 {argv} = require 'optimist'
 {bumpLoad,  heartbeat} = require './heartbeat'
 {load} = require './loader'
-{logger, log, trace, error, fatal} = require './log'
-encode = (arg) -> encodeURIComponent arg
-decode = (arg) -> decodeURIComponent arg
+{logger, log, trace, traceAll, error, fatal} = require './log'
+{encode, decode} = require './util'
 
 # If parent says so, exit
 process.stdin.resume()
@@ -27,10 +26,9 @@ pid = argv.pid                     or 0
 pname = "#{decode name}/#{pid}"
 host = argv.host                   or 'localhost'
 logger argv, "#{pname}: "
-traceAll = (x) -> trace x, 99
 
 # Say hello
-log "(#{argv.op})"
+log "starting '#{argv.op}' engine"
 
 # Set up AMQP Exchanges
 xwork = argv.xwork                 or 'workX'
@@ -73,17 +71,14 @@ connection.on 'ready', =>
   # do work
   try
     work = (msg) ->
-      log "about to transform payloads"
       payload = transform msg.payloads
-      log "transformed payload is:"
-      traceAll payload
       newmsg = JSON.stringify {
         ver: semver
         id: msg.id
         rakIds: msg.rakIds
         payload: payload
       }
-      bumpLoad (_.reduce payload.data, ((loss, d) -> loss + d.loss), 0)
+      bumpLoad (_.reduce payload, ((loss, d) -> loss + d.loss), 0)
       # signal completion
       signalX.publish signalQ, newmsg
       trace "Signaled: #{newmsg}"

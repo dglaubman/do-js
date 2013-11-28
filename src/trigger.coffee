@@ -11,9 +11,8 @@ amqp = require 'amqp'
 
 {argv} = require 'optimist'
 {heartbeat} = require './heartbeat'
-{logger, log, trace, error, fatal} = require './log'
-encode = (arg) -> encodeURIComponent arg
-decode = (arg) -> decodeURIComponent arg
+{logger, log, trace, traceAll, error, fatal} = require './log'
+{encode, decode} = require './util'
 
 # If parent says so, exit
 process.stdin.resume()
@@ -28,7 +27,7 @@ xsignal = argv.xsignal             or 'exposures'    # pre v0.1.0 default
 xserver = argv.xserver             or "servers"      # pre v0.1.0 default
 fatal "must specify signals to listen on" unless argv.signals
 
-signals = (decode argv.signals).split(',')
+signals = _.map argv.signals.split(','), decode
 rak = argv.rak
 workQ = decode name
 pname = "#{decode name}/#{pid}"
@@ -36,9 +35,7 @@ logger argv, "Trigger #{pname}: "
 
 log "#{decode signals} -> #{decode name}"
 
-traceAll = (x) -> trace x, 99
-
-filter = {  'signals': (decode signals), id: rak }
+filter = {  'signals': (signals), id: rak }
 
 connection = amqp.createConnection( { host: host, vhost: "v#{semver}" } )
 
@@ -97,6 +94,6 @@ connection.on 'ready', ->
         id: msg.id
         payloads: entry.payloads
         )
-      log "triggering: #{m}"
+      trace "triggering: #{m}"
       delete cache[msg.id]
       m

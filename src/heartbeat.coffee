@@ -1,8 +1,11 @@
 root = exports ? this
 
+{log} = require './log'
+
 root.bumpLoad = (l) ->
   currentLoad.push l
-  pulse()
+  log l
+#  pulse()
 
 pulse = ->
 currentLoad = []

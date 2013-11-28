@@ -10,7 +10,7 @@ amqp = require 'amqp'
 {argv} = require 'optimist'
 {bumpLoad,  heartbeat} = require './heartbeat'
 {load} = require './loader'
-{logger, log, trace, error, fatal} = require './log'
+{logger, log, trace, traceAll, error, fatal} = require './log'
 
 # If parent says so, exit
 process.stdin.resume()
@@ -47,14 +47,15 @@ connection.on 'ready', =>
     test = require './test'
     payloads = test.init argv
     transform = load argv
-
+    payload = transform payloads
     # transform the test payloads
     newmsg = JSON.stringify {
       ver: semver
       id: argv.id
       rakIds: [argv.rak]
-      payload: transform payloads
+      payload: payload
     }
+    traceAll newmsg
     # signal completion
     signalX.publish signalQ, newmsg
   catch e

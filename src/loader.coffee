@@ -1,21 +1,18 @@
 # load: loads and initializes logic module
 #
-#   Returns function which takes an array of payloads (from a workQ msg).
-#   The function maps the worker to each payload's data,
-#   and returns a new payload
-#       data: worker ( map payloads, payload -> payload.data )
-#       trail: [ status, [ prevstatuses] ]
+#   Returns transform which takes an array of payloads (from a workQ msg).
+#   The transform returns a new payload
 #
 #   Modules are registered in Ops, and reside in ./modules
 #   Module signature is:
-#      init argv
-#      worker [ {any: ignored, loss: 2400}, ... ]
+#      init: argv -> payload list -> payload
+#      run: payload list -> payload
 #
 
 root = exports ? this
 
 _ = require 'underscore'
-{logger, trace} = require './log'
+{logger, trace, error} = require './log'
 {Ops} = require './Ops'
 {Status} = require './Status'
 {construct, mapcat} = require './util'
@@ -23,9 +20,15 @@ _ = require 'underscore'
 root.load = (argv) ->
   module = Ops argv.op
   {run, init} = require "./module/#{module}"
-  init argv
+
+  try
+    init argv
+  catch e
+    error e
+
+  # return transform function
   (payloads) ->
-    data = run (mapcat ((payload) -> payload.data), payloads)
-    stats = mapcat ((payload) -> payload.trail), payloads
-    trail = construct { op: module, status: Status.OK.name }, [stats]
-    { data, trail }
+    try
+      run payloads
+    catch e
+      error e
