@@ -1,7 +1,7 @@
 # exec: start and stop servers per commands on exec queue
 #
 # usage: coffee exec [--host <host>] [--vhost <vhost>] [-v] [-d [<level>]] [--suffix <suffix>]
-# add comment
+#
 semver = "0.1.1"                  # Semantic versioning: see semver.org
 
 amqp = require 'amqp'
@@ -9,12 +9,16 @@ amqp = require 'amqp'
 {logger, error, fatal, log, trace} = require './log'
 {argv} = require 'optimist'
 
+logger argv
+
 host = argv.host     or 'localhost'
 suffix = argv.suffix or ''
-
-logger argv
 vhost = argv.vhost or "v#{semver}"
+globalRak = argv.rak or 0
+
+
 log "exec: on #{host} (vhost is #{vhost})"
+
 
 execQ = 'execQ' + suffix
 workX = 'workX' + suffix
@@ -25,7 +29,7 @@ verboseArg = if argv.v then "-v" else ""
 traceArg = if argv.d then "-d" else ""
 nodeInspectorArg = (n) ->
   return "" unless argv.n
-  return "--nodejs --debug=" + (5858 + n + 1)
+  return "--nodejs --debug=" + (5858 + n + 1) + " "
 
 commonArgs = " #{traceArg} #{verboseArg} --host #{host} --xsignal #{signalX} --xwork #{workX} --xserver #{serverX}"
 
@@ -52,7 +56,7 @@ connection.on 'ready', ->
         q.shift()
         switch words[0]
           when 'start'
-            [type,server,option, rak] = words.splice 1
+            [type,server,option, option2] = words.splice 1
             processName = "#{server}/#{procNum}"
             switch type
               when 'test'
@@ -60,28 +64,38 @@ connection.on 'ready', ->
                   --pid #{procNum} #{commonArgs}"
 
               when 'trigger'
-                cmd = "#{nodeInspectorArg procNum} trigger.coffee -v  --name #{server} --signals #{option} --rak #{rak}
+                cmd = "#{nodeInspectorArg procNum} trigger.coffee -v  --name #{server} --signals #{option} --rak #{option2}
                   --pid #{procNum}  #{commonArgs}"
 
               when 'contract'
-                cmd = "#{nodeInspectorArg procNum} engine.coffee --op contract --cdl #{option}
+                cmd = "#{nodeInspectorArg procNum} engine.coffee --op contract --cdl #{option} --rak #{option}
                   --name #{server} --pid #{procNum} #{commonArgs}"
 
               when 'scale'
-                cmd = "#{nodeInspectorArg procNum} engine.coffee --op scale --factor #{option}
+                cmd = "#{nodeInspectorArg procNum} engine.coffee --op scale --factor #{option}  --rak #{option}
                   --name #{server}  --pid #{procNum} #{commonArgs}"
 
               when 'invert'
-                cmd = "#{nodeInspectorArg procNum} engine.coffee --op invert --name #{server}
+                cmd = "#{nodeInspectorArg procNum} engine.coffee --op invert --name #{server}  --rak #{option}
                   --pid #{procNum} #{commonArgs}"
 
               when 'group'
-                cmd = "#{nodeInspectorArg procNum} engine.coffee --op group --name #{server}
+                cmd = "#{nodeInspectorArg procNum} engine.coffee --op group --name #{server}  --rak #{option}
+                  --pid #{procNum} #{commonArgs}"
+
+              when 'dot'
+                globalRak++
+                cmd = "#{nodeInspectorArg procNum} dot.coffee --cmdFile ../script/#{server}.dot --rak #{globalRak}
+                  --pid #{procNum} #{commonArgs}"
+
+              when 'sling'
+                cmd = "#{nodeInspectorArg procNum} sling.coffee --signal #{server} --op group --test #{option} --rak #{option2}
                   --pid #{procNum} #{commonArgs}"
 
             try
-              #proc = spawn 'coffee', cmd.split ' '
-              proc = spawn( 'cmd', ['/s', '/c', 'coffee ' + cmd ] )
+              trace cmd
+              proc = spawn '/usr/local/bin/coffee', cmd.trim().split ' '   # Mac, Linux
+              #proc = spawn( 'cmd', ['/s', '/c', 'coffee ' + cmd ] )       # Windows
               proc.on 'exit', =>
                 exchange = connection.exchange serverX, options = { type: 'topic'}, ->
                   exchange.publish "#{type}.stopped", processName

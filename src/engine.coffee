@@ -8,7 +8,7 @@ semver = "0.1.1"                  # Semantic versioning: see semver.org
 _ = require 'underscore'
 amqp = require 'amqp'
 {argv} = require 'optimist'
-{bumpLoad,  heartbeat} = require './heartbeat'
+{sendStatistic, heartbeat} = require './heartbeat'
 {load} = require './loader'
 {logger, log, trace, traceAll, error, fatal} = require './log'
 {encode, decode} = require './util'
@@ -25,6 +25,7 @@ signalQ = workQ = decode name
 pid = argv.pid                     or 0
 pname = "#{decode name}/#{pid}"
 host = argv.host                   or 'localhost'
+rak = argv.rak or 1
 logger argv, "#{pname}: "
 
 # Say hello
@@ -56,7 +57,9 @@ connection.on 'ready', =>
     -> traceAll "exchange '#{xwork}' ok"
 
   # Send status/load to server status topic at regular intervals
-  heartbeat connection, xserver, 'engine.ready', pname
+  # heartbeat connection, xserver, 'engine.ready', pname
+  # Send loss statistic (sum of losses) to server status topic
+  heartbeat connection, xserver, 'engine.stat', rak, pid
 
   connection.queue workQ, (q) ->   # use workQ, not '' since want to share work
     #trace "started"
@@ -78,7 +81,7 @@ connection.on 'ready', =>
         rakIds: msg.rakIds
         payload: payload
       }
-      bumpLoad (_.reduce payload, ((loss, d) -> loss + d.loss), 0)
+      sendStatistic(_.reduce payload, ((loss, d) -> loss + d.loss), 0)
       # signal completion
       signalX.publish signalQ, newmsg
       trace "Signaled: #{newmsg}"
