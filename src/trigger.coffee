@@ -47,7 +47,7 @@ connection.on 'ready', ->
     ->  traceAll "exchange #{xsignal} ok"
 
   # Send ready status to trigger.ready topic at regular intervals
-  heartbeat connection, xserver, 'trigger.ready', pname
+#  heartbeat connection, xserver, 'trigger.ready', pname
 
   # when correlated signals arrive, concatenate payloads and funnel request to work queue.
   trigger = (signal, raw) ->

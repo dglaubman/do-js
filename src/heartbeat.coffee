@@ -9,20 +9,21 @@ root.sendStatistic = (l) ->
   log l
 
 pulse = ->
-currentLoss = []
+currentLoss = [0]
 
 # Publish server ready and current load every interval millisecs
-root.heartbeat = ( conn, serverX, topic, rak, pid, interval = 500 ) ->
+root.heartbeat = ( conn, serverX, topic, rak, pid, interval = 100 ) ->
   pulse = ->
     try
-      exchange.publish topic, "rak|#{rak}|pid|#{pid}|loss|#{currentLoss}"
+      if not _.isEmpty currentLoss
+        exchange.publish topic, "rak|#{rak}|pid|#{pid}|loss|#{currentLoss.join ','}"
+        currentLoss = []
     catch e
       error e
   timerFn = ->
     pulse()
     setInterval ( ->
-      pulse()
-      currentLoss = []
+        pulse()
       ) , interval
   exchange = conn.exchange serverX, options = { type: 'topic', autodelete: false }, timerFn
 

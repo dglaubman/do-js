@@ -5,6 +5,7 @@ root = exports ? this
 
 root.init = (argv) ->
   testdir = argv.path or "./test/"
+  iterations = argv.iter or 1
   file = argv.test
   {payloads} = require "#{testdir}#{file}"
   log "Start test: #{file}"

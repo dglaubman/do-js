@@ -68,11 +68,11 @@ connection.on 'ready', ->
                   --pid #{procNum}  #{commonArgs}"
 
               when 'contract'
-                cmd = "#{nodeInspectorArg procNum} engine.coffee --op contract --cdl #{option} --rak #{option}
+                cmd = "#{nodeInspectorArg procNum} engine.coffee --op contract --cdl #{option} --rak #{option2}
                   --name #{server} --pid #{procNum} #{commonArgs}"
 
               when 'scale'
-                cmd = "#{nodeInspectorArg procNum} engine.coffee --op scale --factor #{option}  --rak #{option}
+                cmd = "#{nodeInspectorArg procNum} engine.coffee --op scale --factor #{option}  --rak #{option2}
                   --name #{server}  --pid #{procNum} #{commonArgs}"
 
               when 'invert'
@@ -94,8 +94,8 @@ connection.on 'ready', ->
 
             try
               trace cmd
-              proc = spawn '/usr/local/bin/coffee', cmd.trim().split ' '   # Mac, Linux
-              #proc = spawn( 'cmd', ['/s', '/c', 'coffee ' + cmd ] )       # Windows
+              #proc = spawn '/usr/local/bin/coffee', cmd.trim().split ' '   # Mac, Linux
+              proc = spawn( 'cmd', ['/s', '/c', 'coffee ' + cmd ] )       # Windows
               proc.on 'exit', =>
                 exchange = connection.exchange serverX, options = { type: 'topic'}, ->
                   exchange.publish "#{type}.stopped", processName
