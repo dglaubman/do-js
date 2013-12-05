@@ -1,13 +1,13 @@
-start group Net 
-start trigger Net Gross,~Ceded 1
-start invert ~Ceded 
-start trigger ~Ceded Ceded 1
-start group Ceded 
-start trigger Ceded Fac,PerRisk,Cat 1
-start group Gross 
-start trigger Gross Direct,Assumed 1
-start group Direct 
-start group Assumed 
-start group Fac 
-start group PerRisk 
-start group Cat 
+start group Net
+start trigger Net Gross,~Ceded
+start invert ~Ceded
+start trigger ~Ceded Ceded
+start group Ceded
+start trigger Ceded Fac,PerRisk,Cat
+start group Gross
+start trigger Gross Direct,Assumed
+start group Direct
+start group Assumed
+start group Fac
+start group PerRisk
+start group Cat

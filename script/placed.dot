@@ -1,19 +1,19 @@
-start group Net 
-start trigger Net Gross,~Ceded 1
-start invert ~Ceded 
-start trigger ~Ceded Ceded 1
-start group Ceded 
-start trigger Ceded Fac,PerRisk,Cat 1
-start group Fac 
-start group PerRisk 
-start group Cat 
-start trigger Cat Cat1.Placed,Cat2.Placed 1
-start scale Cat1.Placed 0.3
-start trigger Cat1.Placed Cat1 1
-start scale Cat2.Placed 0.45
-start trigger Cat2.Placed Cat2 1
+start group Net
+start trigger Net Gross,~Ceded
+start invert ~Ceded
+start trigger ~Ceded Ceded
+start group Ceded
+start trigger Ceded Fac,PerRisk,Cat
+start group Fac
+start group PerRisk
+start group Cat
+start trigger Cat Cat1.Placed,Cat2.Placed
+start scale Cat1.Placed opt
+start trigger Cat1.Placed Cat1
+start scale Cat2.Placed opt
+start trigger Cat2.Placed Cat2
 start contract Cat1 Cat1
-start trigger Cat1 Gross 1
+start trigger Cat1 Gross
 start contract Cat2 Cat2
-start trigger Cat2 Gross 1
-start group Gross 
+start trigger Cat2 Gross
+start group Gross

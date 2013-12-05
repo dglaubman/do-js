@@ -1,27 +1,27 @@
-start group Fac 
-start trigger Fac F1,F2,F3 1
-start group PerRisk 
-start trigger PerRisk PPR_Layer1,Fac,SST 1
-start group Book 
+start group Fac
+start trigger Fac F1,F2,F3
+start group PerRisk
+start trigger PerRisk PPR_Layer1,Fac,SST
+start group Book
 start contract F1 F1
-start trigger F1 Book 1
+start trigger F1 Book
 start contract F2 F2
-start trigger F2 Book 1
+start trigger F2 Book
 start contract F3 F3
-start trigger F3 Book 1
-start group HighFac 
-start trigger HighFac F3 1
+start trigger F3 Book
+start group HighFac
+start trigger HighFac F3
 start contract PPR_Layer1 PPR_Layer1
-start trigger PPR_Layer1 Book%20net%20of%20SST%2C%20HighFac 1
+start trigger PPR_Layer1 Book%20net%20of%20SST%2C%20HighFac
 start contract SST SST
-start trigger SST Book%20net%20of%20Fac 1
-start group Book%20net%20of%20Fac 
-start trigger Book%20net%20of%20Fac Book,~Fac 1
-start invert ~Fac 
-start trigger ~Fac Fac 1
-start invert ~SST 
-start trigger ~SST SST 1
-start invert ~HighFac 
-start trigger ~HighFac HighFac 1
-start group Book%20net%20of%20SST%2C%20HighFac 
-start trigger Book%20net%20of%20SST%2C%20HighFac Book,~SST,~HighFac 1
+start trigger SST Book%20net%20of%20Fac
+start group Book%20net%20of%20Fac
+start trigger Book%20net%20of%20Fac Book,~Fac
+start invert ~Fac
+start trigger ~Fac Fac
+start invert ~SST
+start trigger ~SST SST
+start invert ~HighFac
+start trigger ~HighFac HighFac
+start group Book%20net%20of%20SST%2C%20HighFac
+start trigger Book%20net%20of%20SST%2C%20HighFac Book,~SST,~HighFac
