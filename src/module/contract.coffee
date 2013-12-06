@@ -4,6 +4,7 @@ _ = require 'underscore'
 fs = require 'fs'
 {visit} = require '../visitor'
 {trace, error} = require '../log'
+{decode} = require '../util'
 
 MAXLINELEN = 80
 
@@ -31,7 +32,7 @@ compile = (text) ->
 pay = ->
 
 root.init = (argv) ->
-  cdl = argv.cdl
+  cdl = decode( argv.cdl ).replace  ':', '/'
   path = argv.path || '../contracts/'
   text = fs.readFileSync( path + cdl + ".cdl" ).toString()
   payout = compile text
