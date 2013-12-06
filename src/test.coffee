@@ -8,11 +8,11 @@ root.init = (argv) ->
   iterations = argv.iter or 1
   file = argv.test
   {payloads} = require "#{testdir}#{file}"
-  log "Start test: #{file}"
   payloads
 
 root.run = (transform, input) ->
-  start = new Date()
+  log "Start test: #{file}"
+  log = new Date()
   trace (transform input)
   stop = new Date()
   log "  done: #{stop - start}ms"

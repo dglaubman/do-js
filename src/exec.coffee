@@ -5,6 +5,7 @@
 semver = "0.1.1"                  # Semantic versioning: see semver.org
 
 amqp = require 'amqp'
+os = require 'os'
 {spawn} = require 'child_process'
 {logger, error, fatal, log, trace} = require './log'
 {argv} = require 'optimist'
@@ -12,13 +13,11 @@ amqp = require 'amqp'
 logger argv
 
 host = argv.host     or 'localhost'
-suffix = argv.suffix or ''
 vhost = argv.vhost or "v#{semver}"
+suffix = argv.suffix or ''
 globalRak = argv.rak or 0
 
-
 log "exec: on #{host} (vhost is #{vhost})"
-
 
 execQ = 'execQ' + suffix
 workX = 'workX' + suffix
@@ -94,14 +93,17 @@ connection.on 'ready', ->
 
             try
               trace cmd
-              #proc = spawn '/usr/local/bin/coffee', cmd.trim().split ' '   # Mac, Linux
-              proc = spawn( 'cmd', ['/s', '/c', 'coffee ' + cmd ] )       # Windows
+              if os.platform() is 'win32'
+                proc = spawn( 'cmd', ['/s', '/c', 'coffee ' + cmd ] )       # Windows
+              else
+                proc = spawn '/usr/local/bin/coffee', cmd.trim().split ' '  # Mac, Linux
+
               proc.on 'exit', =>
                 exchange = connection.exchange serverX, options = { type: 'topic'}, ->
                   exchange.publish "#{type}.stopped", processName
                   log "#{processName} stopped"
               proc.stderr.setEncoding 'utf8'
-              proc.stderr.on 'data', (data) -> trace "#{processName} stderr: #{data}", -1
+              proc.stderr.on 'data', (data) -> log "#{processName} stderr: #{data}", -1
               proc.stdout.on 'data',  (data) -> log data
               procs[processName] = proc
               procNum++
