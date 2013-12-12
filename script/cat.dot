@@ -1,0 +1,12 @@
+start contract Cat1 Cat1
+start trigger Cat1 ABC%2C%20XYZ%20net%20of%20DEF%2C%20GHI
+start group ABC%2C%20XYZ%20net%20of%20DEF%2C%20GHI
+start trigger ABC%2C%20XYZ%20net%20of%20DEF%2C%20GHI ABC,XYZ,~DEF,~GHI
+start invert ~DEF
+start trigger ~DEF DEF
+start invert ~GHI
+start trigger ~GHI GHI
+start group ABC
+start group XYZ
+start group DEF
+start group GHI

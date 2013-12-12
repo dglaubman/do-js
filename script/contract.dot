@@ -1,0 +1,3 @@
+start group PortA
+start contract TreatyB TreatyB
+start trigger TreatyB PortA

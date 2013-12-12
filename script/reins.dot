@@ -20,9 +20,9 @@ start group Gross%20net%20of%20Fac
 start trigger Gross%20net%20of%20Fac Gross,~Fac
 start group Cat
 start trigger Cat Cat1.Placed,Cat2.Placed
-start scale Cat1.Placed opt
+start scale Cat1.Placed 0.3
 start trigger Cat1.Placed Cat1
-start scale Cat2.Placed opt
+start scale Cat2.Placed 0.45
 start trigger Cat2.Placed Cat2
 start contract Cat1 Cat1
 start trigger Cat1 Gross

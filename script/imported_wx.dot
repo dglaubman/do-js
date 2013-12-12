@@ -11,7 +11,7 @@ start group Acme%3ACat
 start group Acme%3APerRisk
 start trigger Acme%3APerRisk Acme%3AWX1.Placed
 start group Acme%3AFac
-start scale Acme%3AWX1.Placed opt
+start scale Acme%3AWX1.Placed 0.4
 start trigger Acme%3AWX1.Placed Market%3AWX1
 start contract Market%3AWX1 Market%3AWX1
 start trigger Market%3AWX1 Acme%3APortA
@@ -23,7 +23,7 @@ start group Our%3AAssumed
 start trigger Our%3AAssumed Our%3AWX1.Signed
 start group Our%3ACeded
 start trigger Our%3ACeded Our%3AWX1.Ceded
-start scale Our%3AWX1.Ceded opt
+start scale Our%3AWX1.Ceded 0.5
 start trigger Our%3AWX1.Ceded Our%3AWX1.Signed
-start scale Our%3AWX1.Signed opt
+start scale Our%3AWX1.Signed 0.07
 start trigger Our%3AWX1.Signed Market%3AWX1
