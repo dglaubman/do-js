@@ -9,6 +9,7 @@ os = require 'os'
 {spawn} = require 'child_process'
 {logger, error, fatal, log, trace} = require './log'
 {argv} = require 'optimist'
+{Dot} = require './msgs'
 
 logger argv
 
@@ -47,6 +48,7 @@ connection.on 'ready', ->
 
       procs = {}
       procNum = 0
+      subscriptions = []
 
       q.subscribe options={ack:true}, (message, headers, deliveryInfo) ->
         words =  message.data.toString().split /\s+/g
@@ -55,36 +57,45 @@ connection.on 'ready', ->
         q.shift()
         switch words[0]
           when 'start'
-            [type,server,option, option2] = words.splice 1
-            processName = "#{server}/#{procNum}"
+            [type, name, option, option2] = words.splice 1
+            processName = "#{name}/#{procNum}"
             switch type
               when 'test'
-                cmd = "#{nodeInspectorArg procNum} engine.coffee --op scale --factor 1.0 --test #{option} --name #{server}
+                cmd = "#{nodeInspectorArg procNum} engine.coffee --op scale --factor 1.0 --test #{option} --name #{name}
                   --pid #{procNum} #{commonArgs}"
 
               when 'trigger'
-                cmd = "#{nodeInspectorArg procNum} trigger.coffee -v  --name #{server} --signals #{option} --rak #{option2}
+                cmd = "#{nodeInspectorArg procNum} trigger.coffee -v  --name #{name} --signals #{option} --rak #{option2}
                   --pid #{procNum}  #{commonArgs}"
 
               when 'contract'
                 cmd = "#{nodeInspectorArg procNum} engine.coffee --op contract --cdl #{option} --rak #{option2}
-                  --name #{server} --pid #{procNum} #{commonArgs}"
+                  --name #{name} --pid #{procNum} #{commonArgs}"
 
               when 'scale'
                 cmd = "#{nodeInspectorArg procNum} engine.coffee --op scale --factor #{option}  --rak #{option2}
-                  --name #{server}  --pid #{procNum} #{commonArgs}"
+                  --name #{name}  --pid #{procNum} #{commonArgs}"
 
               when 'invert'
-                cmd = "#{nodeInspectorArg procNum} engine.coffee --op invert --name #{server}  --rak #{option}
+                cmd = "#{nodeInspectorArg procNum} engine.coffee --op invert --name #{name}  --rak #{option}
                   --pid #{procNum} #{commonArgs}"
 
               when 'group'
-                cmd = "#{nodeInspectorArg procNum} engine.coffee --op group --name #{server}  --rak #{option}
+                cmd = "#{nodeInspectorArg procNum} engine.coffee --op group --name #{name}  --rak #{option}
                   --pid #{procNum} #{commonArgs}"
 
-              when 'dot'
-                globalRak++
-                cmd = "#{nodeInspectorArg procNum} dot.coffee --cmdFile ../script/#{server}.dot --rak #{globalRak}
+              when 'subscription'
+                sender = option
+                dots = subscriptions[ sender ] or= []
+                rak = dots[ name ]
+                if not rak
+                  rak = ++globalRak
+                  dots[ name ] = rak
+                  dot = name
+                else
+                  dot = 'nop' # if dot is already running, send nop cmdFile
+
+                cmd = "#{nodeInspectorArg procNum} dot.coffee --cmdFile ../script/#{dot}.dot --sender #{sender} --name #{name} --rak #{rak}
                   --pid #{procNum} #{commonArgs}"
 
               when 'sling'
@@ -100,8 +111,13 @@ connection.on 'ready', ->
 
               proc.on 'exit', =>
                 exchange = connection.exchange serverX, options = { type: 'topic'}, ->
-                  exchange.publish "#{type}.stopped", processName
-                  log "#{processName} stopped"
+                  if type is 'subscription'
+                    rak = subscriptions[ option ][name]
+                    log "subscription ready. sender is #{option}. name is #{name}. rak is #{rak}"
+                    exchange.publish Dot.Topic, Dot.Message( option, name, rak)
+                  else
+                    exchange.publish "#{type}.stopped", processName
+                    log "#{processName} stopped"
               proc.stderr.setEncoding 'utf8'
               proc.stderr.on 'data', (data) -> log "#{processName} stderr: #{data}", -1
               proc.stdout.on 'data',  (data) -> log data

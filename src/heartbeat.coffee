@@ -12,11 +12,11 @@ pulse = ->
 currentLoss = [0]
 
 # Publish server ready and current load every interval millisecs
-root.heartbeat = ( conn, serverX, topic, rak, pid, interval = 100 ) ->
+root.heartbeat = ( conn, serverX, topic, rak, pname, interval = 100 ) ->
   pulse = ->
     try
       if not _.isEmpty currentLoss
-        exchange.publish topic, "rak|#{rak}|pid|#{pid}|loss|#{currentLoss.join ','}"
+        exchange.publish topic, "rak|#{rak}|pname|#{pname}|loss|#{currentLoss.join ','}"
         currentLoss = []
     catch e
       error e

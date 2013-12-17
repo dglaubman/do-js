@@ -31,14 +31,14 @@ xserver = argv.xserver or config.serverX
 
 # init journal storage provider
 write = store.init argv
-write {'signal': 1, 'ts':2, 'entry':3 }
+write {'signal': 99, 'ts':2, 'entry':3 }
 
 connection = amqp.createConnection( { host: host, vhost: vhost } )
 connection.on 'ready', ->
   trace "connected to #{host}/#{vhost}"
   signalX = connection.exchange xsignal, options =
     type: 'topic'
-    autodelete: false
+    autoDelete: false
 
 #  heartbeat connection, xserver, 'journal.ready', pname
 
@@ -53,10 +53,10 @@ connection.on 'ready', ->
           trace "recd msg: #{deliveryInfo.routingKey}"
           write {
             signal: deliveryInfo.routingKey
-            ts: new Date().getTime()
-            entry: JSON.parse message.data
+            ts: Date.now()
+            entry: message.data.toString()
           }
-      q.bind(signalX, "*")
+      q.bind(signalX, "#")
       log "listening on #{xsignal}"
     catch e
-      trace e
+      log e

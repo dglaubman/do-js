@@ -59,7 +59,7 @@ connection.on 'ready', =>
   # Send status/load to server status topic at regular intervals
   # heartbeat connection, xserver, 'engine.ready', pname
   # Send loss statistic (sum of losses) to server status topic
-  heartbeat connection, xserver, 'engine.stat', rak, pid
+  heartbeat connection, xserver, 'engine.stat', rak, name
 
   connection.queue workQ, (q) ->   # use workQ, not '' since want to share work
     #trace "started"

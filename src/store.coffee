@@ -1,13 +1,16 @@
 root = exports ? this
 
-{logger, trace,log} = require './log'
+{logger, trace,log, error} = require './log'
 
 root.store =
 
   init: (argv) ->
     unless argv.db
-      return (arga, argb, argc) =>
-        trace arga, argb, argc
+      return (arga...) ->
+        try
+          trace arga
+        catch e
+          error e
 
     name       = argv.db         if argv.db
     host       = argv.dbhost     or 'localhost'
