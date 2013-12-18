@@ -9,14 +9,14 @@ os = require 'os'
 {spawn} = require 'child_process'
 {logger, error, fatal, log, trace} = require './log'
 {argv} = require 'optimist'
-{Dot} = require './msgs'
+{RouteReady, Stopped} = require './msgs'
 
 logger argv
 
 host = argv.host     or 'localhost'
 vhost = argv.vhost or "v#{semver}"
 suffix = argv.suffix or ''
-globalRak = argv.rak or 0
+globalTrack = argv.track or 0
 
 log "exec: on #{host} (vhost is #{vhost})"
 
@@ -38,13 +38,13 @@ connection = amqp.createConnection( { host, vhost } )
 # Listen for all messages sent to execQ queue
 connection.on 'ready', ->
   trace 'exec: connection ok'
-  q = connection.queue "", (q) ->
-    trace "exec: #{q.name} is open"
+  connection.queue "exec." + Date.now(), (q) ->
+    trace "exec: queue #{q.name} is open"
 
     connection.exchange workX, options = { type: 'direct'}, ->
-      trace "exec: exchange '#{workX}' ok"
+      trace "exec: exchange #{workX} ok"
       q.bind workX, execQ
-      log "exec: queue '#{execQ}' bind ok"
+      log "exec: q->#{execQ} bind ok"
 
       procs = {}
       procNum = 0
@@ -55,9 +55,10 @@ connection.on 'ready', ->
         trace words
 
         q.shift()
-        switch words[0]
+        [ticket, track, verb, rest...] = words
+        switch verb
           when 'start'
-            [type, name, option, option2] = words.splice 1
+            [type, name, option] = rest
             processName = "#{name}/#{procNum}"
             switch type
               when 'test'
@@ -65,41 +66,40 @@ connection.on 'ready', ->
                   --pid #{procNum} #{commonArgs}"
 
               when 'trigger'
-                cmd = "#{nodeInspectorArg procNum} trigger.coffee -v  --name #{name} --signals #{option} --rak #{option2}
+                cmd = "#{nodeInspectorArg procNum} trigger.coffee -v   --signals #{option} --name #{name} --track #{track}
                   --pid #{procNum}  #{commonArgs}"
 
               when 'contract'
-                cmd = "#{nodeInspectorArg procNum} engine.coffee --op contract --cdl #{option} --rak #{option2}
-                  --name #{name} --pid #{procNum} #{commonArgs}"
+                cmd = "#{nodeInspectorArg procNum} engine.coffee --op contract --cdl #{option} --name #{name} --track #{track} --routingKey #{ticket}
+                  --pid #{procNum} #{commonArgs}"
 
               when 'scale'
-                cmd = "#{nodeInspectorArg procNum} engine.coffee --op scale --factor #{option}  --rak #{option2}
-                  --name #{name}  --pid #{procNum} #{commonArgs}"
+                cmd = "#{nodeInspectorArg procNum} engine.coffee --op scale --factor #{option} --name #{name} --track #{track} --routingKey #{ticket}
+                  --pid #{procNum} #{commonArgs}"
 
               when 'invert'
-                cmd = "#{nodeInspectorArg procNum} engine.coffee --op invert --name #{name}  --rak #{option}
+                cmd = "#{nodeInspectorArg procNum} engine.coffee --op invert --name #{name}  --track #{track} --routingKey #{ticket}
                   --pid #{procNum} #{commonArgs}"
 
               when 'group'
-                cmd = "#{nodeInspectorArg procNum} engine.coffee --op group --name #{name}  --rak #{option}
+                cmd = "#{nodeInspectorArg procNum} engine.coffee --op group --name #{name}  --track #{track} --routingKey #{ticket}
                   --pid #{procNum} #{commonArgs}"
 
               when 'subscription'
-                sender = option
-                dots = subscriptions[ sender ] or= []
-                rak = dots[ name ]
-                if not rak
-                  rak = ++globalRak
-                  dots[ name ] = rak
+                dots = subscriptions[ ticket ] or= []
+                track = dots[ name ]
+                if not track
+                  track = ++globalTrack
+                  dots[ name ] = track
                   dot = name
                 else
                   dot = 'nop' # if dot is already running, send nop cmdFile
 
-                cmd = "#{nodeInspectorArg procNum} dot.coffee --cmdFile ../script/#{dot}.dot --sender #{sender} --name #{name} --rak #{rak}
+                cmd = "#{nodeInspectorArg procNum} dot.coffee --cmdFile ../script/#{dot}.dot --name #{name} --track #{track} --routingKey #{ticket}
                   --pid #{procNum} #{commonArgs}"
 
               when 'sling'
-                cmd = "#{nodeInspectorArg procNum} sling.coffee --signal #{server} --op group --test #{option} --rak #{option2}
+                cmd = "#{nodeInspectorArg procNum} sling.coffee --signal #{name} --op group --test #{option} --track #{track}
                   --pid #{procNum} #{commonArgs}"
 
             try
@@ -112,11 +112,11 @@ connection.on 'ready', ->
               proc.on 'exit', =>
                 exchange = connection.exchange serverX, options = { type: 'topic'}, ->
                   if type is 'subscription'
-                    rak = subscriptions[ option ][name]
-                    log "subscription ready. sender is #{option}. name is #{name}. rak is #{rak}"
-                    exchange.publish Dot.Topic, Dot.Message( option, name, rak)
+                    track = subscriptions[ ticket ][name]
+                    trace "subscription ready. ticket is #{ticket}. name is #{name}. track is #{track}"
+                    exchange.publish ticket, RouteReady( name, track)
                   else
-                    exchange.publish "#{type}.stopped", processName
+                    exchange.publish ticket, Stopped( type, processName )
                     log "#{processName} stopped"
               proc.stderr.setEncoding 'utf8'
               proc.stderr.on 'data', (data) -> log "#{processName} stderr: #{data}", -1
@@ -125,12 +125,13 @@ connection.on 'ready', ->
               procNum++
             catch  e
               error  "#{processName}: #{e}"
+
           when 'stop'
-            name = words[1]
+            [ type, name ] = rest
             try
               procs[name].stdin.end()
               log "stopping #{name}"
             catch error
               error "can't stop #{name} because does not exist. Signaling #{name} stopped. "
             exchange = connection.exchange serverX, options = { type: 'topic'}, ->
-              exchange.publish "#{type}.stopped", name
+              exchange.publish ticket, Stopped(type, name)

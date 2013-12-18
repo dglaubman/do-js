@@ -1,7 +1,7 @@
 # dot: send commands to exec queue.  When done, publish dot.ready message to server exchange.
 #
 
-usage = "usage: coffee dot.coffee --cmdFile <cmdFile> --sender <sender> [-v] [--host <host>] [--vhost <vhost>] [--suffix <suffix>]"
+usage = "usage: coffee dot.coffee --cmdFile <cmdFile> --name <name> --routingKey <routingKey> [-v] [--host <host>] [--vhost <vhost>]"
 
 semver = "0.1.1"                  # Semantic versioning: see semver.org
 
@@ -18,16 +18,15 @@ logger argv, "dot: "
 
 host = argv.host     or 'localhost'
 vhost = argv.vhost or "v#{semver}"
-log " on #{host} (vhost is #{vhost})"
+trace " on #{host} (vhost is #{vhost})"
 
-suffix = argv.suffix or ''
-sender = argv.sender or fatal 'must specify a sender id'
+routingKey = argv.routingKey or fatal 'must specify a routingKey'
 name = argv.name or fatal 'must specify a DO template name'
 
 cmdFile = argv.cmdFile or fatal usage
 cmds = fs.readFileSync( cmdFile ).toString().split /\r?\n/
 
-rak = argv.rak or 1
+track = argv.track or 1
 
 execQName = 'execQ'
 execX = 'workX'
@@ -37,16 +36,16 @@ connection = amqp.createConnection( { host: host, vhost: vhost } )
 
 # publish message to start dot
 connection.on 'ready', ->
-  trace "  connected to #{host}"
-  ex = connection.exchange execX, options = { type: 'direct'}, ->
-    trace "  opened exchange #{execX}"
-    for cmd in cmds
-      if cmd isnt ""
-        ex.publish execQName, "#{cmd} #{rak}"
-        trace "    sending: #{cmd} on rak #{rak}"
-    # ex2 = connection.exchange serverX, options = { type: 'topic', autoDelete: false}, ->
-    #   trace "  opened exchange #{serverX}"
-    #   ex2.publish Dot.Topic,
-    process.exit 0
-
+  try
+    trace "  connected to #{host}"
+    ex = connection.exchange execX, options = { type: 'direct'}, ->
+      trace "  opened exchange #{execX}"
+      for cmd in cmds
+        if cmd isnt ""
+          msg = "#{routingKey} #{track} #{cmd}"
+          ex.publish execQName, msg
+          trace "    sending: #{msg}"
+      process.exit 0
+  catch e
+    error e
 

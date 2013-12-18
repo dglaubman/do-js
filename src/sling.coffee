@@ -1,14 +1,13 @@
 # sling:  publish a test payload
 #
-# usage: start sling --signal <signal> --test <testfile> [--op <op>]  [--rak <rak>] [-v]
-# secondary options: [--xsignal=] [--xserver=]
+# usage: start sling --signal <signal> --test <testfile> [--op <op>]  [--track <track>] [-v]
+# secondary options: [--xsignal <signalX>]
 
 semver = '0.1.1'                  # Semantic versioning: see semver.org
 
 _ = require 'underscore'
 amqp = require 'amqp'
 {argv} = require 'optimist'
-{bumpLoad,  heartbeat} = require './heartbeat'
 {load} = require './loader'
 {logger, log, trace, traceAll, error, fatal} = require './log'
 
@@ -20,7 +19,6 @@ signal = argv.signal          or fatal 'must specify signal'
 host    = argv.host            or 'localhost'
 vhost   = argv.vhost           or "v#{semver}"
 xsignal = argv.xsignal         or 'signalX'
-xserver = argv.xserver         or 'servers'
 
 # Init log
 logger argv, "#{name}: "
@@ -45,7 +43,7 @@ connection.on 'ready', =>
         newmsg = JSON.stringify {
           ver: semver
           id: argv.id
-          rakIds: [argv.rak]
+          trackIds: [argv.track]
           payload: payload
         }
         # signal completion

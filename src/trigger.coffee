@@ -1,8 +1,7 @@
 # trigger: when correlated signals arrive, concatenate payloads and send to workQ
 #
-# usage: start trigger --name= --pid= [-v] [--signals=..,..]  [--workQ=]  [--rak=]
-#   secondary options:  [--xwork=work exchange] [--xsignal=signals exchange] [--xserver= server exchange]
-#
+# usage: start trigger --name <name> --signals <signals>  --track <track>
+#           --xwork <workX> --xsignal <signalX> [-v] [--pid <pid>]
 
 semver = "0.1.1"              # Semantic versioning: see semver.org
 
@@ -22,22 +21,22 @@ process.stdin.on 'end', ->
 name = argv.name                   or fatal( "No process name specified" )
 pid = argv.pid                     or 0
 host = argv.host                   or 'localhost'
-xwork = argv.xwork                 or 'workX'        # pre v0.1.0 default
-xsignal = argv.xsignal             or 'exposures'    # pre v0.1.0 default
-xserver = argv.xserver             or "servers"      # pre v0.1.0 default
+vhost = argv.vhost                 or "v#{semver}"
+xwork = argv.xwork                 or fatal 'Specify a work exchange'
+xsignal = argv.xsignal             or fatal 'Specify a signal exchange'
 fatal "must specify signals to listen on" unless argv.signals
 
 signals = _.map argv.signals.split(','), decode
-rak = argv.rak
+track = argv.track
 workQ = decode name
 pname = "#{decode name}/#{pid}"
 logger argv, "Trigger #{pname}: "
 
 log "#{decode signals} -> #{decode name}"
 
-filter = {  'signals': (signals), id: rak }
+filter = {  'signals': (signals), id: track }
 
-connection = amqp.createConnection( { host: host, vhost: "v#{semver}" } )
+connection = amqp.createConnection( { host: host, vhost: vhost } )
 
 connection.on 'ready', ->
 
@@ -45,9 +44,6 @@ connection.on 'ready', ->
     ->  traceAll "exchange #{xwork} ok"
   signalX = connection.exchange xsignal, options = { type: 'topic', autodelete: false },
     ->  traceAll "exchange #{xsignal} ok"
-
-  # Send ready status to trigger.ready topic at regular intervals
-#  heartbeat connection, xserver, 'trigger.ready', pname
 
   # when correlated signals arrive, concatenate payloads and funnel request to work queue.
   trigger = (signal, raw) ->
@@ -73,16 +69,16 @@ connection.on 'ready', ->
         trace "recd message from: #{deliveryInfo.routingKey}"
         trigger deliveryInfo.routingKey, message.data
     q.bind(signalX, signal) for signal in signals
-    trace "listening on #{filter.signals} (rak #{filter.id})"
+    trace "listening on #{filter.signals} (track #{filter.id})"
 
   cache = {}
   build =  (signal, msg ) ->
     return null if msg.ver isnt semver
-    return null unless (filter.id in msg.rakIds)
+    return null unless (filter.id in msg.trackIds)
     if signal in filter.signals
       entry = cache[ msg.id ] or= {
         remaining: filter.signals
-        rakIds: msg.rakIds
+        trackIds: msg.trackIds
         payloads: []
         }
       entry.payloads.push msg.payload
@@ -90,7 +86,7 @@ connection.on 'ready', ->
       return null if not _.isEmpty( entry.remaining )
       m = JSON.stringify(
         ver: semver
-        rakIds: _.union( entry.rakIds, msg.rakIds )
+        trackIds: _.union( entry.trackIds, msg.trackIds )
         id: msg.id
         payloads: entry.payloads
         )

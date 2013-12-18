@@ -20,11 +20,13 @@ process.stdin.on 'end', ->
   process.exit 0
 
 # Parse input arguments, set up log
-name = argv.name or fatal( "No process name specified" )
+name = argv.name or fatal 'No process name specified'
+routingKey = argv.routingKey or fatal 'No routing key specified'
 signalQ = workQ = decode name
 pid = argv.pid                     or 0
 pname = "#{decode name}/#{pid}"
 host = argv.host                   or 'localhost'
+vhost = argv.vhost                 or "v#{semver}"
 rak = argv.rak or 1
 logger argv, "#{pname}: "
 
@@ -33,9 +35,9 @@ log "starting '#{argv.op}' engine"
 
 # Set up AMQP Exchanges
 xwork = argv.xwork                 or 'workX'
-xsignal = argv.xsignal             or 'exposures'
-xserver = argv.xserver             or 'servers'
-connection = amqp.createConnection( { host: host, vhost: "v#{semver}" } )
+xsignal = argv.xsignal             or 'signalX'
+xserver = argv.xserver             or 'serverX'
+connection = amqp.createConnection { host: host, vhost: vhost }
 
 # dynamically load transform
 transform = load argv
@@ -57,13 +59,12 @@ connection.on 'ready', =>
     -> traceAll "exchange '#{xwork}' ok"
 
   # Send status/load to server status topic at regular intervals
-  # heartbeat connection, xserver, 'engine.ready', pname
   # Send loss statistic (sum of losses) to server status topic
-  heartbeat connection, xserver, 'engine.stat', rak, name
+  heartbeat connection, xserver, routingKey, rak, name
 
   connection.queue workQ, (q) ->   # use workQ, not '' since want to share work
     #trace "started"
-    q.on 'error', (e) -> error e
+    q.on 'error', (e) -> log "got an error: #{e}"
     q.on 'queueBindOk', ->
       # trace "#{workQ} bound ok"
       # listen on workQ queue, simulate work/load, signal result
