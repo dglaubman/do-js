@@ -113,7 +113,7 @@ connection.on 'ready', ->
                 exchange = connection.exchange serverX, options = { type: 'topic'}, ->
                   if type is 'subscription'
                     track = subscriptions[ ticket ][name]
-                    trace "subscription ready. ticket is #{ticket}. name is #{name}. track is #{track}"
+                    log "#{name} ready on track #{track}"
                     exchange.publish ticket, RouteReady( name, track)
                   else
                     exchange.publish ticket, Stopped( type, processName )

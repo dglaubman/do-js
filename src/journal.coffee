@@ -31,7 +31,7 @@ xserver = argv.xserver or config.serverX
 
 # init journal storage provider
 write = store.init argv
-write {'signal': 99, 'ts':2, 'entry':3 }
+#write {'signal': 99, 'ts':2, 'entry':3 }
 
 connection = amqp.createConnection( { host: host, vhost: vhost } )
 connection.on 'ready', ->

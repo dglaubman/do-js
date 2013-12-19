@@ -19,7 +19,7 @@ signal = argv.signal          or fatal 'must specify signal'
 host    = argv.host            or 'localhost'
 vhost   = argv.vhost           or "v#{semver}"
 xsignal = argv.xsignal         or 'signalX'
-
+id = argv.id                   or Date.now()
 # Init log
 logger argv, "#{name}: "
 
@@ -42,7 +42,7 @@ connection.on 'ready', =>
         # sling the transformed test payload
         newmsg = JSON.stringify {
           ver: semver
-          id: argv.id
+          id: id
           trackIds: [argv.track]
           payload: payload
         }

@@ -28,7 +28,7 @@ fatal "must specify signals to listen on" unless argv.signals
 
 signals = _.map argv.signals.split(','), decode
 track = argv.track
-workQ = decode name
+workQ = "#{decode name}.#{track}"
 pname = "#{decode name}/#{pid}"
 logger argv, "Trigger #{pname}: "
 
@@ -69,7 +69,7 @@ connection.on 'ready', ->
         trace "recd message from: #{deliveryInfo.routingKey}"
         trigger deliveryInfo.routingKey, message.data
     q.bind(signalX, signal) for signal in signals
-    trace "listening on #{filter.signals} (track #{filter.id})"
+    log "listening on #{filter.signals} (track #{filter.id})"
 
   cache = {}
   build =  (signal, msg ) ->

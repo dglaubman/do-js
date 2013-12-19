@@ -8,7 +8,7 @@ root.sendStatistic = (l) ->
   log l
 
 pulse = ->
-currentLoss = [0]
+currentLoss = []
 
 # Publish server ready and current load every interval millisecs
 root.heartbeat = ( conn, serverX, topic, track, pname, interval = 100 ) ->

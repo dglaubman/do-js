@@ -22,12 +22,13 @@ process.stdin.on 'end', ->
 # Parse input arguments, set up log
 name = argv.name or fatal 'No process name specified'
 routingKey = argv.routingKey or fatal 'No routing key specified'
-signalQ = workQ = decode name
+track = argv.track                 or fatal 'No track specified'
+signalQ = decode name
+workQ = "#{signalQ}.#{track}"
 pid = argv.pid                     or 0
 pname = "#{decode name}/#{pid}"
 host = argv.host                   or 'localhost'
 vhost = argv.vhost                 or "v#{semver}"
-rak = argv.rak or 1
 logger argv, "#{pname}: "
 
 # Say hello
@@ -60,7 +61,7 @@ connection.on 'ready', =>
 
   # Send status/load to server status topic at regular intervals
   # Send loss statistic (sum of losses) to server status topic
-  heartbeat connection, xserver, routingKey, rak, name
+  heartbeat connection, xserver, routingKey, track, name
 
   connection.queue workQ, (q) ->   # use workQ, not '' since want to share work
     #trace "started"
@@ -79,7 +80,7 @@ connection.on 'ready', =>
       newmsg = JSON.stringify {
         ver: semver
         id: msg.id
-        rakIds: msg.rakIds
+        trackIds: msg.trackIds
         payload: payload
       }
       sendStatistic(_.reduce payload, ((loss, d) -> loss + d.loss), 0)
