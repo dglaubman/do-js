@@ -11,7 +11,8 @@
     "amqp": "0.1.x",
     "mongodb": "0.9.x",
     "optimist": "0.3.x",
-    "underscore": "~1.5.2"
+    "underscore": "~1.5.2",
+    "lazy.js": "~0.2.1"
   },
   "version": "0.1.1"
 }

@@ -1,0 +1,1 @@
+cd src && coffee exec.coffee $1

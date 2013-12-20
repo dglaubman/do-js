@@ -1,6 +1,6 @@
 # coffee:  publish a sequence of test payloads
 #
-# usage: start feed --signal <signal> --test <testfile> [--op <op>]  [--track <track>] [-v] [--iter <iter>] [--maxLoss <maxLoss>]
+# usage: start feed --signal <signal> --track <track>  --maxLoss <maxLoss> [-v] [--iter <iter = 1>]
 # secondary options: [--xsignal <signalX>]
 
 semver = '0.1.1'                  # Semantic versioning: see semver.org
@@ -11,20 +11,29 @@ amqp = require 'amqp'
 {argv} = require 'optimist'
 {logger, log, trace, traceAll, error, fatal} = require './log'
 
+# Init log
+logger argv, "feed: "
+
 # Parse input arguments, set up log
-name    = "sling"
-signal = argv.signal          or fatal 'must specify signal'
+name    = "feed"
+signal = argv.signal           or fatal 'must specify --signal'
+id = argv.id                   or Date.now()
+iter = argv.iter               or 1
+track = argv.track             or fatal "must specify --track"
+maxLoss = argv.maxLoss         or fatal "must specify --maxLoss"
 
 # Set up AMQP Exchanges
 host    = argv.host            or 'localhost'
 vhost   = argv.vhost           or "v#{semver}"
 xsignal = argv.xsignal         or 'signalX'
-id = argv.id                   or Date.now()
-iter = argv.iter               or 1
-track = argv.track             or fatal "must specify a track"
-maxLoss = argv.maxLoss         or 1000000
-# Init log
-logger argv, "#{name}: "
+
+format = (elapsed) ->
+  [secs, nanos] = elapsed
+  switch
+    when secs is 0
+      "#{(nanos / 1e6).toFixed 3}ms"
+    else
+      "#{secs}s #{(elapsed[1]/ 1e6).toFixed 0}ms"
 
 genLoss = (n) ->
   i = 0
@@ -42,6 +51,7 @@ connection.on 'ready', =>
       autodelete: false }, ->
         trace "exchange #{xsignal} ok"
 
+        start = process.hrtime()
         genLoss(iter).each (payload) ->
           trace payload
           # sling the transformed test payload
@@ -53,7 +63,9 @@ connection.on 'ready', =>
           }
           # signal completion
           signalX.publish signal, newmsg
-#    process.exit 0
+        elapsed = process.hrtime start
+        log "#{iter} iterations in #{format elapsed}"
+        process.exit 0
   catch e
     fatal e
 
