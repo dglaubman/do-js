@@ -1,0 +1,24 @@
+start contract Cat1 Cat1
+start trigger Cat1 PreCat
+start group PreCat
+start trigger PreCat A.PreCat,C.PreCat
+start scale A.PreCat 1.05
+start trigger A.PreCat A%20net%20of%20B%2CD
+start scale C.PreCat 1.1
+start trigger C.PreCat C%20net%20of%20D
+start group C%20net%20of%20D
+start trigger C%20net%20of%20D C,~D
+start invert ~D
+start trigger ~D D
+start group A%20net%20of%20B%2CD
+start trigger A%20net%20of%20B%2CD A,~B,~D
+start group A
+start contract B B
+start trigger B A
+start group A%2CC
+start trigger A%2CC A,C
+start group C
+start contract D D
+start trigger D A%2CC
+start invert ~B
+start trigger ~B B

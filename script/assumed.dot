@@ -1,0 +1,25 @@
+start group Net
+start trigger Net Gross,~Ceded
+start group Gross
+start invert ~Ceded
+start trigger ~Ceded Ceded
+start group Ceded
+start trigger Ceded Fac,PerRisk,Cat
+start group Fac
+start group PerRisk
+start group Cat
+start trigger Cat Cat1.Placed,Cat2.Placed
+start group Cat1
+start group Cat2
+start scale Cat1.Placed 0.3
+start trigger Cat1.Placed Cat1
+start scale Cat2.Placed 0.45
+start trigger Cat2.Placed Cat2
+start scale My%3ACat1.Signed 0.06
+start trigger My%3ACat1.Signed Cat1
+start scale My%3ACat2.Signed 0.045
+start trigger My%3ACat2.Signed Cat2
+start group My%3AProgram1
+start trigger My%3AProgram1 My%3ACat1.Signed,My%3ACat2.Signed
+start group My%3AAssumed
+start trigger My%3AAssumed My%3AProgram1

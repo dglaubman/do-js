@@ -58,7 +58,7 @@ connection.on 'ready', ->
         [ticket, track, verb, rest...] = words
         switch verb
           when 'start'
-            [type, name, option] = rest
+            [type, name, option, option2] = rest
             processName = "#{name}/#{procNum}"
             switch type
               when 'test'
@@ -100,6 +100,10 @@ connection.on 'ready', ->
 
               when 'sling'
                 cmd = "#{nodeInspectorArg procNum} sling.coffee --signal #{name} --op group --test #{option} --track #{track}
+                  --pid #{procNum} #{commonArgs}"
+
+              when 'feed'
+                cmd = "#{nodeInspectorArg procNum} feed.coffee --signal #{name} --maxLoss #{option} --track #{track} --iter #{option2}
                   --pid #{procNum} #{commonArgs}"
 
             try
