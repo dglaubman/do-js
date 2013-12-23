@@ -11,6 +11,12 @@ amqp = require 'amqp'
 {argv} = require 'optimist'
 {logger, log, trace, traceAll, error, fatal} = require './log'
 
+# If parent says so, exit
+process.stdin.resume()
+process.stdin.on 'end', ->
+  log " ... stopping"
+  process.exit 0
+
 # Init log
 logger argv, "feed: "
 
@@ -63,8 +69,8 @@ connection.on 'ready', =>
           # signal completion
           signalX.publish signal, newmsg
         elapsed = process.hrtime start
-        log "#{iter} iterations in #{format elapsed}"
-        process.exit 0
+        log "Signalled #{signal} * #{iter} in #{format elapsed}"
+#        setTimeout process.exit, 0
   catch e
     fatal e
 

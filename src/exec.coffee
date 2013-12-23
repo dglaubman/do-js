@@ -20,6 +20,8 @@ globalTrack = argv.track or 0
 
 log "exec: on #{host} (vhost is #{vhost})"
 
+process.stdin.resume()
+
 execQ = 'execQ' + suffix
 workX = 'workX' + suffix
 serverX = 'serverX' + suffix
