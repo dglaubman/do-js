@@ -1,5 +1,5 @@
-start contract Cat1 Cat1
-start trigger Cat1 PreCat
+start contract Cat3 Cat3
+start trigger Cat3 PreCat
 start group PreCat
 start trigger PreCat A.PreCat,C.PreCat
 start scale A.PreCat 1.05

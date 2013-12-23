@@ -3,7 +3,7 @@ _ = require 'underscore'
 {log, error} = require './log'
 {Stat} = require './msgs'
 
-MAXLEN = 64
+MAXLEN = 128
 
 root.sendStatistic = (l) ->
   if currentLoss.length is MAXLEN
