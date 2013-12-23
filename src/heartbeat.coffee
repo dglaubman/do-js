@@ -3,15 +3,19 @@ _ = require 'underscore'
 {log, error} = require './log'
 {Stat} = require './msgs'
 
+MAXLEN = 64
+
 root.sendStatistic = (l) ->
+  if currentLoss.length is MAXLEN
+    log "sendStatistic queue len is #{MAXLEN}, draining queue."
+    pulse()
   currentLoss.push l
-  log l
 
 pulse = ->
 currentLoss = []
 
 # Publish server ready and current load every interval millisecs
-root.heartbeat = ( conn, serverX, topic, track, pname, interval = 100 ) ->
+root.heartbeat = ( conn, serverX, topic, track, pname, interval = 50 ) ->
   pulse = ->
     try
       if not _.isEmpty currentLoss

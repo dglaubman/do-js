@@ -5,7 +5,9 @@ start trigger ~Ceded Ceded
 start group Ceded
 start trigger Ceded Fac,PerRisk,Cat
 start group Fac
+start trigger Fac Start_Fac
 start group PerRisk
+start trigger PerRisk Start_PerRisk
 start group Cat
 start trigger Cat Cat1.Placed,Cat2.Placed
 start scale Cat1.Placed 0.3
@@ -17,3 +19,4 @@ start trigger Cat1 Gross
 start contract Cat2 Cat2
 start trigger Cat2 Gross
 start group Gross
+start trigger Gross Start_Gross

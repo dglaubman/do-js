@@ -60,7 +60,7 @@ connection.on 'ready', ->
         error "expected version #{semver}, got #{data.ver}"
 
   # listen on signals, fire trigger
-  connection.queue '', {exclusive: true}, (q) ->
+  connection.queue "#{workQ}-#{Date.now()}" , {exclusive: true}, (q) ->
     traceAll "binding queue to keys: #{signals}"
     q.on 'error', error
     q.on 'queueBindOk', ->

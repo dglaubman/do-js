@@ -1,10 +1,14 @@
 start group ABC%2C%20XYZ%20net%20of%20DEF%2C%20GHI
 start trigger ABC%2C%20XYZ%20net%20of%20DEF%2C%20GHI ABC,XYZ,~DEF,~GHI
 start group ABC
+start trigger ABC Start_ABC
 start group XYZ
+start trigger XYZ Start_XYZ
 start invert ~DEF
 start trigger ~DEF DEF
 start invert ~GHI
 start trigger ~GHI GHI
 start group DEF
+start trigger DEF Start_DEF
 start group GHI
+start trigger GHI Start_GHI

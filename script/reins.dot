@@ -29,3 +29,4 @@ start trigger Cat1 Gross
 start contract Cat2 Cat2
 start trigger Cat2 Gross
 start group Gross
+start trigger Gross Start_Gross

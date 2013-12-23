@@ -3,6 +3,7 @@ start trigger Fac F1,F2,F3
 start group PerRisk
 start trigger PerRisk PPR_Layer1,Fac,SST
 start group Book
+start trigger Book Start_Book
 start contract F1 F1
 start trigger F1 Book
 start contract F2 F2

@@ -104,7 +104,7 @@ connection.on 'ready', ->
 
               when 'feed'
                 cmd = "#{nodeInspectorArg procNum} feed.coffee --signal #{name} --maxLoss #{option} --track #{track} --iter #{option2}
-                  --pid #{procNum} #{commonArgs}"
+                  --id #{ticket} --pid #{procNum} #{commonArgs}"
 
             try
               trace cmd

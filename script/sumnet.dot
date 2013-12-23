@@ -11,9 +11,11 @@ start trigger ~D D
 start group A%20net%20of%20B
 start trigger A%20net%20of%20B A,~B
 start group A
+start trigger A Start_A
 start contract B B
 start trigger B A
 start group C
+start trigger C Start_C
 start contract D D
 start trigger D C
 start invert ~B

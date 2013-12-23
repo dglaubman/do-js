@@ -17,10 +17,10 @@ logger argv, "feed: "
 # Parse input arguments, set up log
 name    = "feed"
 signal = argv.signal           or fatal 'must specify --signal'
-id = argv.id                   or Date.now()
+id = argv.id                   or fatal 'must specify --id'
 iter = argv.iter               or 1
 track = argv.track             or fatal "must specify --track"
-maxLoss = argv.maxLoss         or fatal "must specify --maxLoss"
+maxLoss = argv.maxLoss         or 0
 
 # Set up AMQP Exchanges
 host    = argv.host            or 'localhost'
@@ -54,7 +54,6 @@ connection.on 'ready', =>
         start = process.hrtime()
         genLoss(iter).each (payload) ->
           trace payload
-          # sling the transformed test payload
           newmsg = JSON.stringify {
             ver: semver
             id: id++

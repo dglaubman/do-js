@@ -1,4 +1,0 @@
-start scale Cat1.Signed .07
-start trigger Cat1.Signed Cat1 1
-start scale Cat1 1.5
-start trigger Cat1 PortA 1

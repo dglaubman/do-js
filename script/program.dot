@@ -11,6 +11,10 @@ start trigger ~DEF DEF
 start invert ~GHI
 start trigger ~GHI GHI
 start group ABC
+start trigger ABC Start_ABC
 start group XYZ
+start trigger XYZ Start_XYZ
 start group DEF
+start trigger DEF Start_DEF
 start group GHI
+start trigger GHI Start_GHI
