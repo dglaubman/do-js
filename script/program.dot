@@ -1,9 +1,9 @@
-start group Program1
-start trigger Program1 Cat1,Cat2
-start contract Cat1 Cat1
-start trigger Cat1 ABC%2C%20XYZ%20net%20of%20DEF%2C%20GHI
-start contract Cat2 Cat2
-start trigger Cat2 ABC%2C%20XYZ%20net%20of%20DEF%2C%20GHI
+start group Market%3AProgram1
+start trigger Market%3AProgram1 Market%3ACat1,Market%3ACat2
+start contract Market%3ACat1 Market%3ACat1
+start trigger Market%3ACat1 ABC%2C%20XYZ%20net%20of%20DEF%2C%20GHI
+start contract Market%3ACat2 Market%3ACat2
+start trigger Market%3ACat2 ABC%2C%20XYZ%20net%20of%20DEF%2C%20GHI
 start group ABC%2C%20XYZ%20net%20of%20DEF%2C%20GHI
 start trigger ABC%2C%20XYZ%20net%20of%20DEF%2C%20GHI ABC,XYZ,~DEF,~GHI
 start invert ~DEF

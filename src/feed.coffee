@@ -10,6 +10,7 @@ Lazy = require 'lazy.js'
 amqp = require 'amqp'
 {argv} = require 'optimist'
 {logger, log, trace, traceAll, error, fatal} = require './log'
+{decode} = require './util'
 
 # If parent says so, exit
 process.stdin.resume()
@@ -67,7 +68,7 @@ connection.on 'ready', =>
             payload: payload
           }
           # signal completion
-          signalX.publish signal, newmsg
+          signalX.publish (decode signal), newmsg
         elapsed = process.hrtime start
         log "Signalled #{signal} * #{iter} in #{format elapsed}"
 #        setTimeout process.exit, 0

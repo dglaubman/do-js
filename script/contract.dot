@@ -1,4 +1,4 @@
-start group PortA
-start trigger PortA Start_PortA
-start contract TreatyB TreatyB
-start trigger TreatyB PortA
+start group CedantA%3APortA
+start trigger CedantA%3APortA Start_CedantA%3APortA
+start contract Our%3ATreatyB Our%3ATreatyB
+start trigger Our%3ATreatyB CedantA%3APortA
