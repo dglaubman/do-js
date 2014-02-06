@@ -58,57 +58,68 @@ connection.on 'ready', ->
 
         q.shift()
         [ticket, track, verb, rest...] = words
+
         switch verb
           when 'start'
-            [type, name, option, option2] = rest
-            processName = "#{name}/#{procNum}"
-            switch type
-              when 'test'
-                cmd = "#{nodeInspectorArg procNum} engine.coffee --op scale --factor 1.0 --test #{option} --name #{name}
-                  --pid #{procNum} #{commonArgs}"
-
-              when 'trigger'
-                cmd = "#{nodeInspectorArg procNum} trigger.coffee -v   --signals #{option} --name #{name} --track #{track}
-                  --pid #{procNum}  #{commonArgs}"
-
-              when 'contract'
-                cmd = "#{nodeInspectorArg procNum} engine.coffee --op contract --cdl #{option} --name #{name} --track #{track} --routingKey #{ticket}
-                  --pid #{procNum} #{commonArgs}"
-
-              when 'scale'
-                cmd = "#{nodeInspectorArg procNum} engine.coffee --op scale --factor #{option} --name #{name} --track #{track} --routingKey #{ticket}
-                  --pid #{procNum} #{commonArgs}"
-
-              when 'invert'
-                cmd = "#{nodeInspectorArg procNum} engine.coffee --op invert --name #{name}  --track #{track} --routingKey #{ticket}
-                  --pid #{procNum} #{commonArgs}"
-
-              when 'group'
-                cmd = "#{nodeInspectorArg procNum} engine.coffee --op group --name #{name}  --track #{track} --routingKey #{ticket}
-                  --pid #{procNum} #{commonArgs}"
-
-              when 'subscription'
-                dots = subscriptions[ ticket ] or= []
-                track = dots[ name ]
-                if not track
-                  track = ++globalTrack
-                  dots[ name ] = track
-                  dot = name
-                else
-                  dot = 'nop' # if dot is already running, send nop cmdFile
-
-                cmd = "#{nodeInspectorArg procNum} dot.coffee --cmdFile ../script/#{dot}.dot --name #{name} --track #{track} --routingKey #{ticket}
-                  --pid #{procNum} #{commonArgs}"
-
-              when 'sling'
-                cmd = "#{nodeInspectorArg procNum} sling.coffee --signal #{name} --op group --test #{option} --track #{track}
-                  --pid #{procNum} #{commonArgs}"
-
-              when 'feed'
-                cmd = "#{nodeInspectorArg procNum} feed.coffee --signal #{name} --maxLoss #{option} --track #{track} --iter #{option2}
-                  --id #{ticket} --pid #{procNum} #{commonArgs}"
-
             try
+
+              [type, name, option, option2] = rest
+              processName = "#{name}/#{procNum}"
+              switch type
+                when 'test'
+                  cmd = "#{nodeInspectorArg procNum} engine.coffee --op scale --factor 1.0 --test #{option} --name #{name}
+                    --pid #{procNum} #{commonArgs}"
+
+                when 'trigger'
+                  cmd = "#{nodeInspectorArg procNum} trigger.coffee -v   --signals #{option} --name #{name} --track #{track}
+                    --pid #{procNum}  #{commonArgs}"
+
+                when 'contract'
+                  cmd = "#{nodeInspectorArg procNum} engine.coffee --op contract --cdl #{option} --name #{name} --track #{track} --routingKey #{ticket}
+                    --pid #{procNum} #{commonArgs}"
+
+                when 'inline'
+                  cmd = "#{nodeInspectorArg procNum} engine.coffee --op contract --inline #{option} --name #{name} --track #{track} --routingKey #{ticket}
+                    --pid #{procNum} #{commonArgs}"
+
+                when 'scale'
+                  cmd = "#{nodeInspectorArg procNum} engine.coffee --op scale --factor #{option} --name #{name} --track #{track} --routingKey #{ticket}
+                    --pid #{procNum} #{commonArgs}"
+
+                when 'invert'
+                  cmd = "#{nodeInspectorArg procNum} engine.coffee --op invert --name #{name}  --track #{track} --routingKey #{ticket}
+                    --pid #{procNum} #{commonArgs}"
+
+                when 'group'
+                  cmd = "#{nodeInspectorArg procNum} engine.coffee --op group --name #{name}  --track #{track} --routingKey #{ticket}
+                    --pid #{procNum} #{commonArgs}"
+
+                when 'subscription'
+                  dots = subscriptions[ ticket ] or= []
+                  inline = track is "inline"                     # if inline, the serialized dot is in 'option'
+                  track = dots[ name ]
+                  if not track
+                    track = ++globalTrack
+                    dots[ name ] = track
+                    dot = name
+                  else
+                    dot = 'nop' # if dot is already running, send nop cmdFile
+
+                  if inline and dot isnt 'nop'
+                    cmd = "#{nodeInspectorArg procNum} dot.coffee --inline #{option} --name #{name} --track #{track} --routingKey #{ticket}
+                      --pid #{procNum} #{commonArgs}"
+                  else
+                    cmd = "#{nodeInspectorArg procNum} dot.coffee --cmdFile ../script/#{dot}.dot --name #{name} --track #{track} --routingKey #{ticket}
+                      --pid #{procNum} #{commonArgs}"
+
+                when 'sling'
+                  cmd = "#{nodeInspectorArg procNum} sling.coffee --signal #{name} --op group --test #{option} --track #{track}
+                    --pid #{procNum} #{commonArgs}"
+
+                when 'feed'
+                  cmd = "#{nodeInspectorArg procNum} feed.coffee --signal #{name} --maxLoss #{option} --track #{track} --iter #{option2}
+                    --id #{ticket} --pid #{procNum} #{commonArgs}"
+
               trace cmd
               if os.platform() is 'win32'
                 proc = spawn( 'cmd', ['/s', '/c', 'coffee ' + cmd ] )       # Windows

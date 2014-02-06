@@ -1,0 +1,46 @@
+start group Direct
+start trigger Direct Eastern2014,Western2014
+start group Eastern2014
+start trigger Eastern2014 C123,C124,C125,C126,C127
+start group Western2014
+start trigger Western2014 D200,D201,D202,D203,D204
+start contract C123 C123
+start trigger C123 A123
+start contract C124 C124
+start trigger C124 A124
+start contract C125 C125
+start trigger C125 A125
+start contract C126 C126
+start trigger C126 A126
+start contract C127 C127
+start trigger C127 A127
+start contract D200 D200
+start trigger D200 B200
+start contract D201 D201
+start trigger D201 B201
+start contract D202 D202
+start trigger D202 B202
+start contract D203 D203
+start trigger D203 B203
+start contract D204 D204
+start trigger D204 B204
+start group A123
+start trigger A123 Start_A123
+start group A124
+start trigger A124 Start_A124
+start group A125
+start trigger A125 Start_A125
+start group A126
+start trigger A126 Start_A126
+start group A127
+start trigger A127 Start_A127
+start group B200
+start trigger B200 Start_B200
+start group B201
+start trigger B201 Start_B201
+start group B202
+start trigger B202 Start_B202
+start group B203
+start trigger B203 Start_B203
+start group B204
+start trigger B204 Start_B204

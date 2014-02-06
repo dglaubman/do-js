@@ -32,9 +32,12 @@ compile = (text) ->
 pay = ->
 
 root.init = (argv) ->
-  cdl = decode( argv.cdl ).replace  ':', '/'
-  path = argv.path || '../contracts/'
-  text = fs.readFileSync( path + cdl + ".cdl" ).toString()
+  if argv.inline
+    text = decode argv.inline
+  else
+    cdl = decode( argv.cdl ).replace  ':', '/'
+    path = argv.path || '../contracts/'
+    text = fs.readFileSync( path + cdl + ".cdl" ).toString()
   payout = compile text
   pay = visit payout
 

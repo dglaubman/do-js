@@ -2,14 +2,8 @@ start group AIG%3ANet
 start trigger AIG%3ANet AIG%3AGross,~AIG%3ACeded
 start group AIG%3AGross
 start trigger AIG%3AGross Start_AIG%3AGross
-start invert ~AIG%3ACeded
-start trigger ~AIG%3ACeded AIG%3ACeded
 start group AIG%3ACeded
 start trigger AIG%3ACeded AIG%3AFac,AIG%3APerRisk,AIG%3ACat
-start group AIG%3AFac
-start trigger AIG%3AFac Start_AIG%3AFac
-start group AIG%3APerRisk
-start trigger AIG%3APerRisk Start_AIG%3APerRisk
 start group AIG%3ACat
 start trigger AIG%3ACat AIG%3ACat1.Placed,AIG%3ACat2.Placed
 start group AIG%3ACat1
@@ -28,3 +22,9 @@ start group my%3AProgram1
 start trigger my%3AProgram1 my%3ACat1.Signed,my%3ACat2.Signed
 start group my%3AAssumed
 start trigger my%3AAssumed my%3AProgram1
+start invert ~AIG%3ACeded
+start trigger ~AIG%3ACeded AIG%3ACeded
+start group AIG%3AFac
+start trigger AIG%3AFac Start_AIG%3AFac
+start group AIG%3APerRisk
+start trigger AIG%3APerRisk Start_AIG%3APerRisk

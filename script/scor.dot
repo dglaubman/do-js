@@ -1,0 +1,28 @@
+start group SCOR%3ASCOR%20Global
+start trigger SCOR%3ASCOR%20Global UK%3ASCOR%20UK,Reass%3ASCOR%20Reass
+start group UK%3ASpecialty
+start trigger UK%3ASpecialty UK%3ASUL%20UK
+start group UK%3ATreaty
+start trigger UK%3ATreaty UK%3AUK%20%26%20Ireland
+start group UK%3ASCOR%20UK
+start trigger UK%3ASCOR%20UK UK%3ASpecialty,UK%3ATreaty
+start group UK%3ASUL%20UK
+start trigger UK%3ASUL%20UK Start_UK%3ASUL%20UK
+start group UK%3AUK%20%26%20Ireland
+start trigger UK%3AUK%20%26%20Ireland Start_UK%3AUK%20%26%20Ireland
+start group Reass%3ASCOR%20Reass
+start trigger Reass%3ASCOR%20Reass Reass%3ASpecialty,Reass%3ATreaty
+start group Reass%3ASpecialty
+start trigger Reass%3ASpecialty Reass%3AInwards%20Retro,Reass%3AJoburg,Reass%3ADecennial
+start group Reass%3ATreaty
+start trigger Reass%3ATreaty Reass%3ABelgiumLux,Reass%3AFrance
+start group Reass%3ADecennial
+start trigger Reass%3ADecennial Start_Reass%3ADecennial
+start group Reass%3AInwards%20Retro
+start trigger Reass%3AInwards%20Retro Start_Reass%3AInwards%20Retro
+start group Reass%3AJoburg
+start trigger Reass%3AJoburg Start_Reass%3AJoburg
+start group Reass%3ABelgiumLux
+start trigger Reass%3ABelgiumLux Start_Reass%3ABelgiumLux
+start group Reass%3AFrance
+start trigger Reass%3AFrance Start_Reass%3AFrance

@@ -1,0 +1,42 @@
+start group SCOR%20Global
+start trigger SCOR%20Global S20%3AASIA%20PACIF.,S22%3AAUSTRALIA,S11%3ACANADA,S5%3AGERMANY,S6%3AITALIA,S10%3ARE%20US,S2%3AREASS.,S17%3ASWITZERLAND,S1%3AUK
+start group S20%3AASIA%20PACIF.
+start trigger S20%3AASIA%20PACIF. S20%3ASpecialty,S20%3ATreaty
+start group S20%3ASpecialty
+start trigger S20%3ASpecialty S20%3ASpecialty%20Hong-Kong,S20%3ASpecialty%20Singapore
+start group S20%3ATreaty
+start trigger S20%3ATreaty S20%3ABeijing,S20%3AHong-Kong,S20%3AIndia,S20%3ALabuan,S20%3ASeoul,S20%3AHong-Kong,S20%3ASingapore,S20%3ATokyo
+start group S22%3AAUSTRALIA
+start trigger S22%3AAUSTRALIA Start_S22%3AAUSTRALIA
+start group S11%3ACANADA
+start trigger S11%3ACANADA Start_S11%3ACANADA
+start group S5%3AGERMANY
+start trigger S5%3AGERMANY Start_S5%3AGERMANY
+start group S6%3AITALIA
+start trigger S6%3AITALIA Start_S6%3AITALIA
+start group S10%3ARE%20US
+start trigger S10%3ARE%20US Start_S10%3ARE%20US
+start group S2%3AREASS.
+start trigger S2%3AREASS. Start_S2%3AREASS.
+start group S17%3ASWITZERLAND
+start trigger S17%3ASWITZERLAND Start_S17%3ASWITZERLAND
+start group S1%3AUK
+start trigger S1%3AUK Start_S1%3AUK
+start group S20%3ASpecialty%20Hong-Kong
+start trigger S20%3ASpecialty%20Hong-Kong Start_S20%3ASpecialty%20Hong-Kong
+start group S20%3ASpecialty%20Singapore
+start trigger S20%3ASpecialty%20Singapore Start_S20%3ASpecialty%20Singapore
+start group S20%3ABeijing
+start trigger S20%3ABeijing Start_S20%3ABeijing
+start group S20%3AHong-Kong
+start trigger S20%3AHong-Kong Start_S20%3AHong-Kong
+start group S20%3AIndia
+start trigger S20%3AIndia Start_S20%3AIndia
+start group S20%3ALabuan
+start trigger S20%3ALabuan Start_S20%3ALabuan
+start group S20%3ASeoul
+start trigger S20%3ASeoul Start_S20%3ASeoul
+start group S20%3ASingapore
+start trigger S20%3ASingapore Start_S20%3ASingapore
+start group S20%3ATokyo
+start trigger S20%3ATokyo Start_S20%3ATokyo

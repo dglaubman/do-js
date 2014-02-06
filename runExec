@@ -1,1 +1,1 @@
-cd src && coffee exec.coffee $1
+cd src && coffee exec.coffee $@

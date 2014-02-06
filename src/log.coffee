@@ -9,7 +9,8 @@ debugLevel = 0
 logger = (argv, pre) ->
   debug = argv.d
   switch typeof debug
-    when 'number' then debugLevel = debug
+    when 'number'
+      debugLevel = debug
     when 'boolean' then debugLevel = 1
   verbose = argv.v
   if pre then prefix = pre

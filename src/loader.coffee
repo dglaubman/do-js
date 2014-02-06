@@ -11,11 +11,8 @@
 
 root = exports ? this
 
-_ = require 'underscore'
-{logger, trace, error} = require './log'
+{error} = require './log'
 {Ops} = require './Ops'
-{Status} = require './Status'
-{construct, mapcat} = require './util'
 
 root.load = (argv) ->
   module = Ops argv.op
