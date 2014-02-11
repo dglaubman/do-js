@@ -1,0 +1,134 @@
+# I want to create a model
+  # m = new Model name, text
+#
+# render a model
+  # model.graph
+#
+# list a model:
+  # model.text
+  # model.name
+#
+# start a model
+  # model.start cb
+  #
+# run a model
+  # model.run numIter, cb
+  #
+
+# Store
+#
+# I want to retrieve a model's text by name
+  # text = store.get name
+  #
+
+# Renderer
+# I want to visualize a graph
+  # view graph
+
+# Text editor
+# I want to load a text
+  # editor.load name, text
+
+# editor.on 'change'
+# editor.on
+#
+#
+#
+
+Controller:
+  start: () ->
+    @ticket <- getTicket
+    then fire structure_selected 'standard'
+
+  subscribe: (@model) ->
+    route = @model.name
+    publish SUBSCRIBE @ticket route model.cmds
+
+  ready: (route, track) ->
+    fire subscription_ready route, track
+
+Toc:
+  on structure_selected: (name) ->
+    text = load name
+    model = new Model name, text
+    view = new View model
+
+Model:
+  new: (@name, t) ->
+    build t, err,  ->
+      fire modelReady this
+
+  update: (t) ->
+    build t, err,  ->
+      fire modelChanged this
+
+  err = fail e
+
+  build = (t) ->
+    (g,c,e) <- compile t
+    if e is success
+      @graph, @cmds, @text <- g, c, t
+
+View:
+  new: (@model) ->
+    @label, @value <- model.name, model.text
+
+  on value_changed =  ()  ->
+    @label <- @model.name + '*'
+    @model.update @value
+
+Graph:
+  on modelReady = (model) ->
+    render model.graph
+  on modelChanged = (model) ->
+    render model.graph
+  on subscription_ready =
+
+UI#start:
+  on click: () ->
+    controller.subscribe model
+
+
+
+------------
+
+Model
+  Holds structure text, graph and DO cmds
+
+Graph View
+  Renders model graph
+
+Text View/Edit
+  Text editor, also displays label
+
+Stat View
+  Renders stats 
+
+DO controller
+  Subscribes/unsubscribes/Runs structure
+
+Dispatcher
+  Receives signals/stats, dispatches to controller(s)
+
+App
+  Responds to UI controls, calls other objects
+
+Store
+  Retrieves text by name
+
+
+-----
+
+App:
+  on load:
+     get ticket from origin server
+     init controller, comm, dispatch
+  
+  on select structure:
+     text <- store.get structure
+     model <- new Model text
+     editor.label <- structure
+     editor.edit text
+
+  on editor_value_changed
+     

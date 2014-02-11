@@ -11,7 +11,7 @@ amqp = require 'amqp'
 {argv} = require 'optimist'
 {heartbeat} = require './heartbeat'
 {logger, log, trace, traceAll, error, fatal} = require './log'
-{encode, decode} = require './util'
+{encode, decode, EOF} = require './util'
 
 # If parent says so, exit
 process.stdin.resume()

@@ -5,6 +5,7 @@ root.encode = encode = (arg) -> encodeURIComponent arg
 root.decode = decode = (arg) -> decodeURIComponent arg
 root.deserialize = (arg) -> JSON.parse decode arg
 root.serialize = (arg) -> encode JSON.stringify arg
+root.EOF = (arg) -> arg[0].loss is Number.NEGATIVE_INFINITY
 
 root.fail = fail = (x) -> throw x
 

@@ -11,7 +11,7 @@ amqp = require 'amqp'
 {sendStatistic, heartbeat} = require './heartbeat'
 {load} = require './loader'
 {logger, log, trace, traceAll, error, fatal} = require './log'
-{encode, decode} = require './util'
+{encode, decode, EOF} = require './util'
 
 # If parent says so, exit
 process.stdin.resume()
@@ -83,9 +83,10 @@ connection.on 'ready', =>
         trackIds: msg.trackIds
         payload: payload
       }
-      sendStatistic(_.reduce payload, ((loss, d) -> loss + d.loss), 0)
       # signal completion
       signalX.publish signalQ, newmsg
+      if EOF(payload) then process.exit 0
+      sendStatistic(_.reduce payload, ((loss, d) -> loss + d.loss), 0)
       trace "Signaled: #{newmsg}"
   catch e
     error e
