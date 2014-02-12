@@ -11,7 +11,7 @@ amqp = require 'amqp'
 {argv} = require 'optimist'
 {heartbeat} = require './heartbeat'
 {logger, log, trace, traceAll, error, fatal} = require './log'
-{encode, decode, EOF} = require './util'
+{encode, decode, EOF, STOPMSG} = require './util'
 
 # If parent says so, exit
 process.stdin.resume()
@@ -55,7 +55,7 @@ connection.on 'ready', ->
       when semver
         if (m = build( signal, data ))
           workX.publish( workQ, m )
-          traceAll "publish on #{workQ}"
+          trace "publish on #{workQ}"
       else
         error "expected version #{semver}, got #{data.ver}"
 
@@ -75,6 +75,14 @@ connection.on 'ready', ->
   build =  (signal, msg ) ->
     return null if msg.ver isnt semver
     return null unless (filter.id in msg.trackIds)
+    if EOF(msg)
+      log "EOF!"
+      setTimeout () ->
+        trace "stopping"
+        process.exit 0
+      , 1000
+      STOPMSG msg
+
     if signal in filter.signals
       entry = cache[ msg.id ] or= {
         remaining: filter.signals

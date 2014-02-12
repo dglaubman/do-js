@@ -10,7 +10,7 @@ Lazy = require 'lazy.js'
 amqp = require 'amqp'
 {argv} = require 'optimist'
 {logger, log, trace, traceAll, error, fatal} = require './log'
-{decode} = require './util'
+{decode, EOF} = require './util'
 
 # If parent says so, exit
 process.stdin.resume()
@@ -43,6 +43,10 @@ format = (elapsed) ->
       "#{secs}s #{(elapsed[1]/ 1e6).toFixed 0}ms"
 
 genLoss = (n) ->
+  if EOF maxLoss
+    return  Lazy.generate( -> 1 )
+      .map( (e) ->  [ { loss: maxLoss, event: 1 } ] )
+      .take 1
   i = 0
   Lazy.generate( ->  Math.random() )
     .map( (e) -> [ { loss : (e * maxLoss), event : i++ } ] )
@@ -57,7 +61,6 @@ connection.on 'ready', =>
       type: 'topic'
       autodelete: false }, ->
         trace "exchange #{xsignal} ok"
-
         start = process.hrtime()
         genLoss(iter).each (payload) ->
           trace payload
@@ -67,11 +70,12 @@ connection.on 'ready', =>
             trackIds: [argv.track]
             payload: payload
           }
+          log "Msg: #{newmsg}"
           # signal completion
           signalX.publish (decode signal), newmsg
         elapsed = process.hrtime start
         log "Signalled #{signal} * #{iter} in #{format elapsed}"
-#        setTimeout process.exit, 0
+        setTimeout ( () -> process.exit 0 ), 1000
   catch e
     fatal e
 

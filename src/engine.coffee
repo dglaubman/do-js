@@ -11,7 +11,7 @@ amqp = require 'amqp'
 {sendStatistic, heartbeat} = require './heartbeat'
 {load} = require './loader'
 {logger, log, trace, traceAll, error, fatal} = require './log'
-{encode, decode, EOF} = require './util'
+{encode, decode, EOF, STOPMSG} = require './util'
 
 # If parent says so, exit
 process.stdin.resume()
@@ -76,17 +76,27 @@ connection.on 'ready', =>
   # do work
   try
     work = (msg) ->
-      payload = transform msg.payloads
-      newmsg = JSON.stringify {
-        ver: semver
-        id: msg.id
-        trackIds: msg.trackIds
-        payload: payload
-      }
+      if (EOF(msg))
+        newmsg = STOPMSG msg
+      else
+        payload = transform msg.payloads
+        newmsg = JSON.stringify {
+          ver: semver
+          id: msg.id
+          trackIds: msg.trackIds
+          payload: payload
+        }
       # signal completion
       signalX.publish signalQ, newmsg
-      if EOF(payload) then process.exit 0
-      sendStatistic(_.reduce payload, ((loss, d) -> loss + d.loss), 0)
+      if EOF msg
+        log "EOF!"
+        signalX.publish signalQ,
+        setTimeout () ->
+          trace "stopping"
+          process.exit 0
+        , 1000
+        return 0
       trace "Signaled: #{newmsg}"
+      sendStatistic(_.reduce payload, ((loss, d) -> loss + d.loss), 0)
   catch e
     error e

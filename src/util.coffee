@@ -5,7 +5,29 @@ root.encode = encode = (arg) -> encodeURIComponent arg
 root.decode = decode = (arg) -> decodeURIComponent arg
 root.deserialize = (arg) -> JSON.parse decode arg
 root.serialize = (arg) -> encode JSON.stringify arg
-root.EOF = (arg) -> arg[0].loss is Number.NEGATIVE_INFINITY
+SENTINEL = 9007199254740992   # Largest ECMA integer value 2^53
+root.EOF = (msg) ->
+  switch
+    when typeof msg is "number"
+      msg is SENTINEL
+    when msg.payloads
+      msg.payloads[0][0].loss is SENTINEL
+    when msg.payload
+      msg.payload[0].loss is SENTINEL
+    else
+      false
+
+
+root.STOPMSG = ( opts ) ->
+  JSON.stringify {
+    payload: [{
+      loss:  SENTINEL
+      event: 0
+    }]
+    ver: opts.ver
+    id: opts.id
+    trackIds: opts.trackIds
+  }
 
 root.fail = fail = (x) -> throw x
 
