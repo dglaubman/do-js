@@ -70,12 +70,12 @@ connection.on 'ready', =>
             trackIds: [argv.track]
             payload: payload
           }
-          log "Msg: #{newmsg}"
+          log "#{newmsg}"
           # signal completion
           signalX.publish (decode signal), newmsg
         elapsed = process.hrtime start
         log "Signalled #{signal} * #{iter} in #{format elapsed}"
-        setTimeout ( () -> process.exit 0 ), 1000
+        setTimeout ( () -> process.exit 0 ), 2000
   catch e
     fatal e
 

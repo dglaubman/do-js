@@ -90,7 +90,7 @@ connection.on 'ready', =>
       signalX.publish signalQ, newmsg
       if EOF msg
         log "EOF!"
-        signalX.publish signalQ,
+        signalX.publish signalQ, STOPMSG msg
         setTimeout () ->
           trace "stopping"
           process.exit 0

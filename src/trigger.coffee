@@ -72,10 +72,12 @@ connection.on 'ready', ->
     log "listening on #{filter.signals} (track #{filter.id})"
 
   cache = {}
+  eofCount = 0
   build =  (signal, msg ) ->
     return null if msg.ver isnt semver
     return null unless (filter.id in msg.trackIds)
     if EOF(msg)
+      if eofCount++ > 0 then return null
       log "EOF!"
       setTimeout () ->
         trace "stopping"
